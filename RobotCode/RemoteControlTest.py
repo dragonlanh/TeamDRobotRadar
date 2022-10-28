@@ -20,6 +20,21 @@ def GetActiveButton():
     return converted['ButtonPress']
 
 
+while True:
+    if GetMovementMode == "idle":
+        pass
+    if GetmovementMode == "remote":
+        button = GetActiveButton
+        if button == "w":
+            print(button)
+        elif button == "a":
+            print(button)
+        elif button == "s":
+            print(button)
+        elif button == "d":
+            print(button)
+        else:
+            print(button)
 
 
 
