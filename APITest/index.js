@@ -18,6 +18,9 @@ const hostname = "192.168.1.7"; // change to your ipv4 address for testing, run 
 
 Mode = "idle";
 ButtonPress = "";
+locationX = 0;
+locationY = 0;
+
 
 app.use(express.json());
 
@@ -59,6 +62,16 @@ app.get('/ButtonPress/:button', (req, res) => {
 app.get('/GetButton', (req, res) => {
     res.send(ButtonPress);
 });
+
+app.get('/GetLocation', (req, res) => {
+    res.send({locationX, locationY});
+})
+
+app.get('/UpdateLocation/:X/:Y', (req, res) => {
+    locationX = req.params.X;
+    locationY = req.params.Y;
+    console.log({locationX, LocationY});
+})
 
 app.listen(
     PORT, hostname,
