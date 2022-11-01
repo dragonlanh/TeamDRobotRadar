@@ -4,7 +4,7 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 const http = require("http");
-const hostname = "192.168.1.7"; // change to your ipv4 address for testing, run "ipconfig" in cmd to find it
+const hostname = "192.168.1.130"; // change to your ipv4 address for testing, run "ipconfig" in cmd to find it
 
 // const server = http.createServer(function(req, res){});
 
@@ -18,9 +18,6 @@ const hostname = "192.168.1.7"; // change to your ipv4 address for testing, run 
 
 Mode = "idle";
 ButtonPress = "";
-locationX = 0;
-locationY = 0;
-
 
 app.use(express.json());
 
@@ -63,18 +60,16 @@ app.get('/GetButton', (req, res) => {
     res.send(ButtonPress);
 });
 
-app.get('/GetLocation', (req, res) => {
-    res.send({locationX, locationY});
-})
+app.get('/MovmentPress/:movement', (req, res) => {
+    MovementPress = req.params.movement;
+    console.log({MovementPress})
+});
 
-app.get('/UpdateLocation/:X/:Y', (req, res) => {
-    locationX = req.params.X;
-    locationY = req.params.Y;
-    console.log({locationX, LocationY});
-})
+app.get('/GetMovement', (req, res) => {
+    res.send(MovementPress);
+});
 
 app.listen(
     PORT, hostname,
     () => console.log(`it's alive on http://${hostname}:${PORT}`)
 )
-
