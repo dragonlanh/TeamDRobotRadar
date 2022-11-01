@@ -8,7 +8,6 @@ pygame.key.set_repeat(20, 20)
 screensize = (500, 500)
 scene = pygame.display.set_mode(screensize)
 CurrentButton = "none"  # current button being pressed
-LastButton = "none"
 robotBody = pygame.image.load("kermit.png")
 robotRect = robotBody.get_rect()
 

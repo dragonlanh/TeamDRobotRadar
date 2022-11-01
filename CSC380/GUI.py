@@ -1,10 +1,10 @@
 from tkinter import *
 import pygame
 root = Tk()
-root.title("Team C's RoborRadar" )
-root.iconbitmap(r'C:\Users\Long Nguyen\Code\Python\CSC380\logo.ico')
+root.title("Team C's RoborRadar")
+root.iconbitmap(r'./logo.ico')
 
-startButton = Button(root, text= "Start",command = pygame.init(), padx=50, pady=10 )
+startButton = Button(root, text="Start", command=pygame.init(), padx=50, pady=10)
 startButton.pack(padx=100, pady=0)
 
 
@@ -36,6 +36,7 @@ def robotControl(left, down, right, up):
 
 def surface(x, y):
     scene.blit(groundSprite, (x, y))
+
 
 starting = True
 while starting:
