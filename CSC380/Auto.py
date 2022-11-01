@@ -37,38 +37,38 @@ def robotControl(left, down, right, up):
 
 def faceRight():
     if facing == "up":
-        UpdateCurrentMovement("right")
+        currentMovement = UpdateCurrentMovement("right")
     if facing == "left":
-        UpdateCurrentMovement("180")
+        currentMovement = UpdateCurrentMovement("180")
     if facing == "down":
-        UpdateCurrentMovement("left")
+        currentMovement = UpdateCurrentMovement("left")
     facing == "right"
 
 def faceUp():
     if facing == "right":
-        UpdateCurrentMovement("left")
+        currentMovement = UpdateCurrentMovement("left")
     if facing == "left":
-        UpdateCurrentMovement("right")
+        currentMovement = UpdateCurrentMovement("right")
     if facing == "down":
-        UpdateCurrentMovement("180")
+        currentMovement = UpdateCurrentMovement("180")
     facing == "up"
 
 def faceLeft():
     if facing == "up":
-        UpdateCurrentMovement("left")
+        currentMovement = UpdateCurrentMovement("left")
     if facing == "right":
-        UpdateCurrentMovement("180")
+        currentMovement = UpdateCurrentMovement("180")
     if facing == "down":
-        UpdateCurrentMovement("right")
+        currentMovement = UpdateCurrentMovement("right")
     facing == "left"
 
 def faceDown():
     if facing == "up":
-        UpdateCurrentMovement("180")
+        currentMovement = UpdateCurrentMovement("180")
     if facing == "left":
-        UpdateCurrentMovement("left")
+        currentMovement = UpdateCurrentMovement("left")
     if facing == "right":
-        UpdateCurrentMovement("right")
+        currentMovement = UpdateCurrentMovement("right")
     facing == "down"
 
 def surface(x, y):
@@ -76,26 +76,28 @@ def surface(x, y):
 
 def ChangeMovementMode(mode):
     if mode == "remote":
-        res = requests.get("http://192.168.1.130:8080/ChangeMoveMode/remote")
+        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/remote")
         print(res)
     elif mode == "auto":
-        res = requests.get("http://192.168.1.130:8080/ChangeMoveMode/auto")
+        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/auto")
         print(res)
     elif mode == "roam":
-        res = requests.get("http://192.168.1.130:8080/ChangeMoveMode/roam")
+        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/roam")
         print(res)
     elif mode == "idle":
-        res = requests.get("http://192.168.1.130:8080/ChangeMoveMode/idle")
+        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/idle")
         print(res)
     else:
         print("error, mode not accepted")
 
+
 def SendMovement(movement):
     try:
-        res = requests.get(f"http://192.168.1.130:8080/MovementPress/{movement}", timeout=0.01)
+        res = requests.get(f"http://192.168.1.7:8080/ButtonPress/{movement}", timeout=0.01)
         print(res)
     except requests.exceptions.Timeout as err:
         pass
+
 
 def UpdateCurrentMovement(movement):
     if movement != currentMovement:
@@ -117,61 +119,61 @@ while starting:
             while (pos[0] - 50) > robotX:
                 if facing != "right" and turned == False:
                     faceRight()
-                    turned == True
-                UpdateCurrentMovement("fwd")
-                robotX += .5
+                    turned = True
+                currentMovement = UpdateCurrentMovement("fwd")
+                robotX += .05
                 robot(robotX, robotY)
                 pygame.display.flip()
                 for i in range(0, 500, 64):
                     for j in range(0, 500, 64):
                         surface(i, j)
 
-            turned == False
+            turned = False
             
             #left
             while (pos[0] - 50) < robotX:
                 if facing != "left" and turned == False:
                     faceLeft()
-                    turned == True
-                UpdateCurrentMovement("fwd")
-                robotX -= .5
+                    turned = True
+                currentMovement = UpdateCurrentMovement("fwd")
+                robotX -= .05
                 robot(robotX, robotY)
                 pygame.display.flip()
                 for i in range(0, 500, 64):
                     for j in range(0, 500, 64):
                         surface(i, j)
 
-            turned == False
+            turned = False
             
             #up
             while (pos[1] - 50) < robotY:
                 if facing != "up" and turned == False:
                     faceUp()
-                    turned == True
-                UpdateCurrentMovement("fwd")
-                robotY -= .5
+                    turned = True
+                currentMovement = UpdateCurrentMovement("fwd")
+                robotY -= .05
                 robot(robotX, robotY)
                 pygame.display.flip()
                 for i in range(0, 500, 64):
                     for j in range(0, 500, 64):
                         surface(i, j)
 
-            turned == False
+            turned = False
             
             #down
             while (pos[1] - 50) > robotY:
                 if facing != "down" and turned == False:
                     faceDown()
-                    turned == True
-                UpdateCurrentMovement("fwd")
-                robotY += .5
+                    turned = True
+                currentMovement = UpdateCurrentMovement("fwd")
+                robotY += .05
                 robot(robotX, robotY)
                 pygame.display.flip()
                 for i in range(0, 500, 64):
                     for j in range(0, 500, 64):
                         surface(i, j)
 
-            turned == False
+            turned = False
 
     for i in range(0, 500, 64):
         for j in range(0, 500, 64):
@@ -179,7 +181,7 @@ while starting:
 
     robot(robotX, robotY)
 
-    UpdateCurrentMovement("halt")
+    currentMovement = UpdateCurrentMovement("halt")
 
     pygame.display.flip()
     clock.tick(60)

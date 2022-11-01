@@ -4,7 +4,7 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 const http = require("http");
-const hostname = "192.168.1.130"; // change to your ipv4 address for testing, run "ipconfig" in cmd to find it
+const hostname = "192.168.1.7"; // change to your ipv4 address for testing, run "ipconfig" in cmd to find it
 
 // const server = http.createServer(function(req, res){});
 
@@ -57,7 +57,7 @@ app.get('/ButtonPress/:button', (req, res) => {
 });
 
 app.get('/GetButton', (req, res) => {
-    res.send(ButtonPress);
+    res.send({ButtonPress});
 });
 
 app.get('/MovmentPress/:movement', (req, res) => {
