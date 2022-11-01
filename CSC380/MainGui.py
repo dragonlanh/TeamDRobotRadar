@@ -188,45 +188,45 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]:
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
             CurrentButton = UpdateCurrentButton("a")
-            if keys[pygame.K_s]:
+            if keys[pygame.K_s] or keys[pygame.K_DOWN]:
                 CurrentButton = UpdateCurrentButton("as")
                 MoveRobot(-0.01, -0.01, 0, 0)
-            if keys[pygame.K_w]:
+            if keys[pygame.K_w] or keys[pygame.K_UP]:
                 CurrentButton = UpdateCurrentButton("aw")
                 MoveRobot(-0.01, 0, 0, 0.01)
             else:
                 MoveRobot(-0.7, 0, 0, 0)
 
-        if keys[pygame.K_s]:
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
             CurrentButton = UpdateCurrentButton("s")
-            if keys[pygame.K_a]:
+            if keys[pygame.K_a] or keys[pygame.K_LEFT]:
                 CurrentButton = UpdateCurrentButton("as")
                 MoveRobot(-0.01, -0.01, 0, 0)
-            if keys[pygame.K_d]:
+            if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                 CurrentButton = UpdateCurrentButton("sd")
                 MoveRobot(0, -0.01, 0.01, 0)
             else:
                 MoveRobot(0, -0.7, 0, 0)
 
-        if keys[pygame.K_d]:
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
             CurrentButton = UpdateCurrentButton("d")
-            if keys[pygame.K_s]:
+            if keys[pygame.K_s] or keys[pygame.K_DOWN]:
                 CurrentButton = UpdateCurrentButton("sd")
                 MoveRobot(0, -0.01, 0.01, 0)
-            if keys[pygame.K_w]:
+            if keys[pygame.K_w] or keys[pygame.K_UP]:
                 CurrentButton = UpdateCurrentButton("dw")
                 MoveRobot(0, 0, 0.01, 0.01)
             else:
                 MoveRobot(0, 0, 0.7, 0)
 
-        if keys[pygame.K_w]:
+        if keys[pygame.K_w] or keys[pygame.K_UP]:
             CurrentButton = UpdateCurrentButton("w")
-            if keys[pygame.K_a]:
+            if keys[pygame.K_a] or keys[pygame.K_LEFT]:
                 CurrentButton = UpdateCurrentButton("aw")
                 MoveRobot(-0.01, 0, 0, 0.01)
-            if keys[pygame.K_d]:
+            if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                 CurrentButton = UpdateCurrentButton("dw")
                 MoveRobot(0, 0, 0.01, 0.01)
             else:
