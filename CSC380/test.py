@@ -5,7 +5,7 @@ import pygame
 
 root = Tk()
 root.title("Team C's RoborRadar" )
-root.iconbitmap(r'C:\Users\Long Nguyen\Code\Python\CSC380\logo.ico')
+root.iconbitmap(r'.\logo.ico')
 
 def start():
    pygame.init()

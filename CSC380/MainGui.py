@@ -92,17 +92,22 @@ class Map:
 
 # functions
 def ChangeMovementMode(mode):
+    global Current_Movement_Mode
     if mode == "remote":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/remote")
+        res = requests.get("http://129.3.221.88:8080/ChangeMoveMode/remote")
+        Current_Movement_Mode = "remote"
         print(res)
     elif mode == "auto":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/auto")
+        res = requests.get("http://129.3.221.88:8080/ChangeMoveMode/auto")
+        Current_Movement_Mode = "auto"
         print(res)
     elif mode == "roam":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/roam")
+        res = requests.get("http://129.3.221.88:8080/ChangeMoveMode/roam")
+        Current_Movement_Mode = "roam"
         print(res)
     elif mode == "idle":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/idle")
+        res = requests.get("http://129.3.221.88:8080/ChangeMoveMode/idle")
+        Current_Movement_Mode = "idle"
         print(res)
     else:
         print("error, mode not accepted")
@@ -110,7 +115,7 @@ def ChangeMovementMode(mode):
 
 def SendButtonPress(buttons):
     try:
-        res = requests.get(f"http://192.168.1.7:8080/ButtonPress/{buttons}", timeout=0.01)
+        res = requests.get(f"http://129.3.221.88:8080/ButtonPress/{buttons}", timeout=0.01)
         print(res)
     except requests.exceptions.Timeout as err:
         pass
@@ -123,8 +128,9 @@ def UpdateCurrentButton(button):
     return button
 
 
-RobotX = 310
-RobotY = 30
+RobotX = 525
+RobotY = 230
+
 
 def MoveRobot(left, down, right, up):
     global RobotX, RobotY
@@ -187,50 +193,51 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            CurrentButton = UpdateCurrentButton("a")
-            if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-                CurrentButton = UpdateCurrentButton("as")
-                MoveRobot(-0.01, -0.01, 0, 0)
-            if keys[pygame.K_w] or keys[pygame.K_UP]:
-                CurrentButton = UpdateCurrentButton("aw")
-                MoveRobot(-0.01, 0, 0, 0.01)
-            else:
-                MoveRobot(-0.7, 0, 0, 0)
-
-        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-            CurrentButton = UpdateCurrentButton("s")
+        if Current_Movement_Mode == "remote":
+            keys = pygame.key.get_pressed()
             if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-                CurrentButton = UpdateCurrentButton("as")
-                MoveRobot(-0.01, -0.01, 0, 0)
-            if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-                CurrentButton = UpdateCurrentButton("sd")
-                MoveRobot(0, -0.01, 0.01, 0)
-            else:
-                MoveRobot(0, -0.7, 0, 0)
+                CurrentButton = UpdateCurrentButton("a")
+                if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+                    CurrentButton = UpdateCurrentButton("as")
+                    MoveRobot(-0.01, -0.01, 0, 0)
+                if keys[pygame.K_w] or keys[pygame.K_UP]:
+                    CurrentButton = UpdateCurrentButton("aw")
+                    MoveRobot(-0.01, 0, 0, 0.01)
+                else:
+                    MoveRobot(-0.7, 0, 0, 0)
 
-        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            CurrentButton = UpdateCurrentButton("d")
             if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-                CurrentButton = UpdateCurrentButton("sd")
-                MoveRobot(0, -0.01, 0.01, 0)
-            if keys[pygame.K_w] or keys[pygame.K_UP]:
-                CurrentButton = UpdateCurrentButton("dw")
-                MoveRobot(0, 0, 0.01, 0.01)
-            else:
-                MoveRobot(0, 0, 0.7, 0)
+                CurrentButton = UpdateCurrentButton("s")
+                if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+                    CurrentButton = UpdateCurrentButton("as")
+                    MoveRobot(-0.01, -0.01, 0, 0)
+                if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+                    CurrentButton = UpdateCurrentButton("sd")
+                    MoveRobot(0, -0.01, 0.01, 0)
+                else:
+                    MoveRobot(0, -0.7, 0, 0)
 
-        if keys[pygame.K_w] or keys[pygame.K_UP]:
-            CurrentButton = UpdateCurrentButton("w")
-            if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-                CurrentButton = UpdateCurrentButton("aw")
-                MoveRobot(-0.01, 0, 0, 0.01)
             if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-                CurrentButton = UpdateCurrentButton("dw")
-                MoveRobot(0, 0, 0.01, 0.01)
-            else:
-                MoveRobot(0, 0, 0, 0.7)
+                CurrentButton = UpdateCurrentButton("d")
+                if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+                    CurrentButton = UpdateCurrentButton("sd")
+                    MoveRobot(0, -0.01, 0.01, 0)
+                if keys[pygame.K_w] or keys[pygame.K_UP]:
+                    CurrentButton = UpdateCurrentButton("dw")
+                    MoveRobot(0, 0, 0.01, 0.01)
+                else:
+                    MoveRobot(0, 0, 0.7, 0)
+
+            if keys[pygame.K_w] or keys[pygame.K_UP]:
+                CurrentButton = UpdateCurrentButton("w")
+                if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+                    CurrentButton = UpdateCurrentButton("aw")
+                    MoveRobot(-0.01, 0, 0, 0.01)
+                if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+                    CurrentButton = UpdateCurrentButton("dw")
+                    MoveRobot(0, 0, 0.01, 0.01)
+                else:
+                    MoveRobot(0, 0, 0, 0.7)
 
     UpdateRobotRect(RobotX, RobotY)
     pygame.display.update()
