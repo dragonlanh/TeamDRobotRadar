@@ -1,101 +1,50 @@
-
-from tkinter import *
 import pygame
 
+# define constants  
+WIDTH = 500  
+HEIGHT = 500  
+FPS = 60
 
-root = Tk()
-root.title("Team C's RoborRadar" )
-root.iconbitmap(r'C:\Users\Long Nguyen\Code\Python\CSC380\logo.ico')
+# define colors  
+BLACK = (0 , 0 , 0)  
+GREEN = (0 , 255 , 0)  
 
-def start():
-   pygame.init()
-   clock = pygame.time.Clock()
-   pygame.key.set_repeat(20, 20)
-   screensize = (500,500)
-   scene = pygame.display.set_mode(screensize)
+# initialize pygame and create screen  
+pygame.init()  
+wn = pygame.display.set_mode((WIDTH , HEIGHT))  
+clock = pygame.time.Clock()  
+        
+# Create image
 
-   robotBody = pygame.image.load("kermit.png")
-   robotRect = robotBody.get_rect()
-   groundSprite = pygame.image.load('floor.jpg')
+img0 = pygame.image.load('./RobotRadar/Robot.png')
+img0 = pygame.transform.scale(img0, (50,50))
 
-   robotX = 225
-   robotY = 225
-   def robot(x, y):
-      scene.blit(robotBody, (x, y))
-      robotRect.x = x
-      robotRect.y = y
+img0.set_colorkey(BLACK)
+rect0 = img0.get_rect()
+rect0.center = (WIDTH // 2 , HEIGHT // 2)
 
-   def robotControl(left, down, right, up):
-      global robotX,robotY
-      speed = 5
-      robotX += speed*left
-      robotX += speed*right
-      robotY -= speed*down
-      robotY -= speed*up
-
-   def surface(x, y):
-      scene.blit(groundSprite, (x, y))
-
-   starting = True
-   while starting:
-      for event in pygame.event.get():
-         if event.type == pygame.QUIT:
-            starting =False
-         keys = pygame.key.get_pressed()
-         if keys[pygame.K_a]:
-            if keys[pygame.K_s]:
-               robotControl(-0.01, -0.01, 0, 0)
-            if keys[pygame.K_w]:
-               robotControl(-0.01, 0, 0, 0.01)
-            if keys[pygame.K_d]:
-               robotControl(0, 0, 0, 0)
-            else:
-               robotControl(-0.7, 0, 0, 0)
-         if keys[pygame.K_s]:
-            if keys[pygame.K_a]:
-               robotControl(-0.01, -0.01, 0, 0)
-            if keys[pygame.K_d]:
-               robotControl(0, -0.01, 0.01, 0)
-            if keys[pygame.K_w]:
-               robotControl(0, 0, 0, 0)
-            else:
-               robotControl(0, -0.7, 0, 0)
-         if keys[pygame.K_d]:
-            if keys[pygame.K_s]:
-               robotControl(0, -0.01, 0.01, 0)
-            if keys[pygame.K_w]:
-               robotControl(0, 0, 0.01, 0.01)
-            if keys[pygame.K_a]:
-               robotControl(0, 0, 0, 0)
-            else:
-               robotControl(0, 0, 0.7, 0)
-         if keys[pygame.K_w]:
-            if keys[pygame.K_a]:
-               robotControl(-0.01, 0, 0, 0.01)
-            if keys[pygame.K_d]:
-               robotControl(0, 0, 0.01, 0.01)
-            if keys[pygame.K_s]:
-               robotControl(0, 0, 0, 0)
-            else:
-               robotControl(0, 0, 0, 0.7)  
-
-      for i in range(0, 500, 64):
-         for j in range(0, 500, 64):
-            surface(i, j)
-      
-      robot(robotX, robotY)
-
-      pygame.display.flip()
-      clock.tick(60)
-
-   pygame.quit()
-
-startButton = Button(root, text= "Start",command = start, padx=50, pady=10 )
-startButton.pack(padx=100, pady=0)
+ 
+def RotateRobot(angle):
+    pygame.transform.rotate(img0, angle)
+angle = 0
+run = True
+while run:  
+   for event in pygame.event.get():  
+      if event.type == pygame.QUIT:  
+         run = False
+   keys = pygame.key.get_pressed()
+   if keys[pygame.K_a] :     
+      angle += 1
+      img1 = pygame.transform.rotate(img0 , angle) 
+      rect1 = img0.get_rect()
+      rect1.center = rect0.center
+    
+      wn.fill(BLACK)
+      wn.blit(img1,rect1)
+    
+   clock.tick(FPS)
+   pygame.display.flip()
 
 
-
-quitButton = Button(root, text='Exit Program',command=root.quit,padx=50, pady=10 )
-quitButton.pack(padx=100, pady=0)
-
-root.mainloop()
+pygame.quit()
+pygame.quit()
