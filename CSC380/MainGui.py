@@ -2,6 +2,7 @@ import pygame
 import requests
 import threading
 import json
+import math
 
 pygame.init()
 HEIGHT = 600
@@ -126,17 +127,17 @@ def UpdateCurrentButton(button):
     return button
 
 
-def MoveRobot(left, down, right, up):
+def MoveRobot(left, down, right, up, ang):
     global RobotX, RobotY
     velocity = 5
     if not RobotX >= RobotMap.Map_rect.topright[0] - 50:
-        RobotX += velocity * right
+        RobotX += velocity * math.cos(ang)
     if not RobotX <= RobotMap.Map_rect.topleft[0]:
-        RobotX += velocity * left
+        RobotX += velocity * math.cos(ang)
     if not RobotY >= RobotMap.Map_rect.bottomleft[1] - 50:
-        RobotY -= velocity * down
+        RobotY -= velocity * math.sin(ang)
     if not RobotY <= RobotMap.Map_rect.topleft[1]:
-        RobotY -= velocity * up
+        RobotY -= velocity * math.sin(ang)
 
 
 def RotateRobot(left, down, right, up):
@@ -150,10 +151,15 @@ def UpdateRobotRect(x, y):
     screen.blit(rotated_image, new_rect)
 
 
+# not in use \/
 def blitRotate2(surf, image, topleft, angle):
     rotated_image = pygame.transform.rotate(image, angle)
     new_rect = rotated_image.get_rect(center=image.get_rect(topleft=topleft).center)
     surf.blit(rotated_image, new_rect.topleft)
+
+
+def CalculateDirection(left, down, right, up, ang):
+    pass
 
 
 # load images
@@ -205,7 +211,7 @@ while running:
 
             if keys[pygame.K_s] or keys[pygame.K_DOWN]:
                 CurrentButton = UpdateCurrentButton("s")
-                MoveRobot(0, -0.7, 0, 0)
+                MoveRobot(0, -1, 0, 0, angle)
 
             if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                 angle -= 1
@@ -214,7 +220,7 @@ while running:
 
             if keys[pygame.K_w] or keys[pygame.K_UP]:
                 CurrentButton = UpdateCurrentButton("w")
-                MoveRobot(0, 0, 0, 0.7)
+                MoveRobot(0, 0, 0, 1, angle)
 
     UpdateRobotRect(RobotX, RobotY)
     pygame.display.update()
