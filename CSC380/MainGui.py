@@ -2,7 +2,7 @@ import pygame
 import requests
 import threading
 import json
-from Classes import *
+from Auto import *
 
 pygame.init()
 HEIGHT = 600
@@ -108,7 +108,6 @@ def ChangeMovementMode(mode):
     elif mode == "idle":
         res = requests.get("http://129.3.221.88:8080/ChangeMoveMode/idle")
         Current_Movement_Mode = "idle"
-        print(res)
     else:
         print("error, mode not accepted")
 
