@@ -30,7 +30,6 @@ def blitRotate2(surf, image, topleft, angle):
     surf.blit(rotated_image, new_rect.topleft)
 
 
-
 def RotateRobot(angle):
     pygame.transform.rotate(img0, angle)
 

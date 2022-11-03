@@ -2,7 +2,6 @@ import pygame
 import requests
 import threading
 import json
-from Auto import *
 
 pygame.init()
 HEIGHT = 600
@@ -28,7 +27,7 @@ class Button:
         # top rectangle
         self.top_rect = pygame.Rect(position, (width, height))
         self.top_color = '#ABB8C3'
-        #bottom rectangle
+        # bottom rectangle
         self.bottom_rect = pygame.Rect(position, (width, elevation))
         self.bottom_color = "#484e53"
         # text handling
@@ -127,10 +126,6 @@ def UpdateCurrentButton(button):
     return button
 
 
-RobotX = 525
-RobotY = 230
-
-
 def MoveRobot(left, down, right, up):
     global RobotX, RobotY
     velocity = 5
@@ -168,12 +163,13 @@ Robot_rect = Robot_img.get_rect()
 IdleButton = Button("Idle", 200, 40, (20, 40), 5, ChangeMovementMode, "idle")
 RemoteButton = Button("Remote", 200, 40, (20, 90), 5, ChangeMovementMode, "remote")
 AutoButton = Button("Autonomous", 200, 40, (20, 140), 5, ChangeMovementMode, "auto")
-RoamButton = Button("Roam", 200, 40, (20, 190), 5,  ChangeMovementMode, "roam")
+RoamButton = Button("Roam", 200, 40, (20, 190), 5, ChangeMovementMode, "roam")
 
 # create map variable
 RobotMap = Map('./Map.png', (300, 20), 500, 500)
-#starting_pos = (RobotMap.Map_rect.topleft[0] + 10, RobotMap.Map_rect.topleft[1] + 10)
-#Robot_rect.topleft = starting_pos
+Robot_rect.center = RobotMap.Map_rect.center
+RobotX = Robot_rect.centerx
+RobotY = Robot_rect.centery
 
 # adding text
 ConnText = pygame.font.Font(None, 30).render("Robot : Connected", True, "#000000")
@@ -181,6 +177,7 @@ ConnTextRect = ConnText.get_rect()
 ConnTextRect.topleft = (20, 400)
 
 # main loop
+angle = 0
 running = True
 while running:
     # update screen
@@ -201,51 +198,26 @@ while running:
         if Current_Movement_Mode == "remote":
             keys = pygame.key.get_pressed()
             if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+                angle += 1
                 CurrentButton = UpdateCurrentButton("a")
-                if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-                    CurrentButton = UpdateCurrentButton("as")
-                    MoveRobot(-0.01, -0.01, 0, 0)
-                if keys[pygame.K_w] or keys[pygame.K_UP]:
-                    CurrentButton = UpdateCurrentButton("aw")
-                    MoveRobot(-0.01, 0, 0, 0.01)
-                else:
-                    MoveRobot(-0.7, 0, 0, 0)
+                blitRotate2(screen, Robot_img, Robot_rect.topleft, angle)
 
             if keys[pygame.K_s] or keys[pygame.K_DOWN]:
                 CurrentButton = UpdateCurrentButton("s")
-                if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-                    CurrentButton = UpdateCurrentButton("as")
-                    MoveRobot(-0.01, -0.01, 0, 0)
-                if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-                    CurrentButton = UpdateCurrentButton("sd")
-                    MoveRobot(0, -0.01, 0.01, 0)
-                else:
-                    MoveRobot(0, -0.7, 0, 0)
+                MoveRobot(0, -0.7, 0, 0)
 
             if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+                angle -= 1
                 CurrentButton = UpdateCurrentButton("d")
-                if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-                    CurrentButton = UpdateCurrentButton("sd")
-                    MoveRobot(0, -0.01, 0.01, 0)
-                if keys[pygame.K_w] or keys[pygame.K_UP]:
-                    CurrentButton = UpdateCurrentButton("dw")
-                    MoveRobot(0, 0, 0.01, 0.01)
-                else:
-                    MoveRobot(0, 0, 0.7, 0)
+                blitRotate2(screen, Robot_img, Robot_rect.topleft, angle)
 
             if keys[pygame.K_w] or keys[pygame.K_UP]:
                 CurrentButton = UpdateCurrentButton("w")
-                if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-                    CurrentButton = UpdateCurrentButton("aw")
-                    MoveRobot(-0.01, 0, 0, 0.01)
-                if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-                    CurrentButton = UpdateCurrentButton("dw")
-                    MoveRobot(0, 0, 0.01, 0.01)
-                else:
-                    MoveRobot(0, 0, 0, 0.7)
+                MoveRobot(0, 0, 0, 0.7)
 
     UpdateRobotRect(RobotX, RobotY)
     pygame.display.update()
     clock.tick(60)
+    pygame.display.flip()
 
 pygame.quit()
