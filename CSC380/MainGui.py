@@ -144,9 +144,10 @@ def RotateRobot(left, down, right, up):
 
 
 def UpdateRobotRect(x, y):
-    screen.blit(Robot_img, (x, y))
     Robot_rect.x = x
     Robot_rect.y = y
+    new_rect = rotated_image.get_rect(center=Robot_img.get_rect(topleft=Robot_rect.topleft).center)
+    screen.blit(rotated_image, new_rect)
 
 
 def blitRotate2(surf, image, topleft, angle):
@@ -175,7 +176,7 @@ RobotY = Robot_rect.centery
 ConnText = pygame.font.Font(None, 30).render("Robot : Connected", True, "#000000")
 ConnTextRect = ConnText.get_rect()
 ConnTextRect.topleft = (20, 400)
-
+rotated_image = pygame.transform.rotate(Robot_img, 0)
 # main loop
 angle = 0
 running = True
@@ -200,7 +201,7 @@ while running:
             if keys[pygame.K_a] or keys[pygame.K_LEFT]:
                 angle += 1
                 CurrentButton = UpdateCurrentButton("a")
-                blitRotate2(screen, Robot_img, Robot_rect.topleft, angle)
+                rotated_image = pygame.transform.rotate(Robot_img, angle)
 
             if keys[pygame.K_s] or keys[pygame.K_DOWN]:
                 CurrentButton = UpdateCurrentButton("s")
@@ -209,7 +210,7 @@ while running:
             if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                 angle -= 1
                 CurrentButton = UpdateCurrentButton("d")
-                blitRotate2(screen, Robot_img, Robot_rect.topleft, angle)
+                rotated_image = pygame.transform.rotate(Robot_img, angle)
 
             if keys[pygame.K_w] or keys[pygame.K_UP]:
                 CurrentButton = UpdateCurrentButton("w")
