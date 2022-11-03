@@ -154,6 +154,12 @@ def UpdateRobotRect(x, y):
     Robot_rect.y = y
 
 
+def blitRotate2(surf, image, topleft, angle):
+    rotated_image = pygame.transform.rotate(image, angle)
+    new_rect = rotated_image.get_rect(center=image.get_rect(topleft=topleft).center)
+    surf.blit(rotated_image, new_rect.topleft)
+
+
 # load images
 Robot_img = pygame.image.load("./Robot.png").convert_alpha()
 Robot_rect = Robot_img.get_rect()

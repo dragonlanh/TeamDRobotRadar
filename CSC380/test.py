@@ -27,7 +27,6 @@ rect0.center = (WIDTH // 2, HEIGHT // 2)
 def blitRotate2(surf, image, topleft, angle):
     rotated_image = pygame.transform.rotate(image, angle)
     new_rect = rotated_image.get_rect(center=image.get_rect(topleft=topleft).center)
-
     surf.blit(rotated_image, new_rect.topleft)
 
 
@@ -38,6 +37,7 @@ def RotateRobot(angle):
 
 angle = 0
 run = True
+wn.blit(img0, rect0)
 while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -45,10 +45,12 @@ while run:
     keys = pygame.key.get_pressed()
     if keys[pygame.K_a]:
         angle += 1
+        wn.fill(BLACK)
         blitRotate2(wn, img0, rect0.topleft, angle)
 
     if keys[pygame.K_d]:
-        angle += 1
+        angle -= 1
+        wn.fill(BLACK)
         blitRotate2(wn, img0, rect0.topleft, angle)
 
     clock.tick(FPS)
