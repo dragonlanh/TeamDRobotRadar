@@ -94,19 +94,19 @@ class Map:
 def ChangeMovementMode(mode):
     global Current_Movement_Mode
     if mode == "remote":
-        res = requests.get("http://129.3.221.88:8080/ChangeMoveMode/remote")
+        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/remote")
         Current_Movement_Mode = "remote"
         print(res)
     elif mode == "auto":
-        res = requests.get("http://129.3.221.88:8080/ChangeMoveMode/auto")
+        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/auto")
         Current_Movement_Mode = "auto"
         print(res)
     elif mode == "roam":
-        res = requests.get("http://129.3.221.88:8080/ChangeMoveMode/roam")
+        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/roam")
         Current_Movement_Mode = "roam"
         print(res)
     elif mode == "idle":
-        res = requests.get("http://129.3.221.88:8080/ChangeMoveMode/idle")
+        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/idle")
         Current_Movement_Mode = "idle"
     else:
         print("error, mode not accepted")
@@ -114,7 +114,7 @@ def ChangeMovementMode(mode):
 
 def SendButtonPress(buttons):
     try:
-        res = requests.get(f"http://129.3.221.88:8080/ButtonPress/{buttons}", timeout=0.01)
+        res = requests.get(f"http://192.168.1.7:8080/ButtonPress/{buttons}", timeout=0.01)
         print(res)
     except requests.exceptions.Timeout as err:
         pass
@@ -129,15 +129,16 @@ def UpdateCurrentButton(button):
 
 def MoveRobot(left, down, right, up, ang):
     global RobotX, RobotY
-    velocity = 5
+    rad = math.radians(ang)
+    velocity = 2
     if not RobotX >= RobotMap.Map_rect.topright[0] - 50:
-        RobotX += velocity * math.cos(ang)
+        RobotX -= down * (velocity * math.asin(rad))
     if not RobotX <= RobotMap.Map_rect.topleft[0]:
-        RobotX += velocity * math.cos(ang)
+        RobotX -= down * (velocity * math.asin(rad))
     if not RobotY >= RobotMap.Map_rect.bottomleft[1] - 50:
-        RobotY -= velocity * math.sin(ang)
+        RobotY += down * (velocity * math.acos(rad))
     if not RobotY <= RobotMap.Map_rect.topleft[1]:
-        RobotY -= velocity * math.sin(ang)
+        RobotY += down * (velocity * math.acos(rad))
 
 
 def RotateRobot(left, down, right, up):
@@ -211,7 +212,7 @@ while running:
 
             if keys[pygame.K_s] or keys[pygame.K_DOWN]:
                 CurrentButton = UpdateCurrentButton("s")
-                MoveRobot(0, -1, 0, 0, angle)
+                MoveRobot(0, 1, 0, 0, angle)
 
             if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                 angle -= 1
@@ -220,7 +221,7 @@ while running:
 
             if keys[pygame.K_w] or keys[pygame.K_UP]:
                 CurrentButton = UpdateCurrentButton("w")
-                MoveRobot(0, 0, 0, 1, angle)
+                MoveRobot(0, -1, 0, 0, angle)
 
     UpdateRobotRect(RobotX, RobotY)
     pygame.display.update()
