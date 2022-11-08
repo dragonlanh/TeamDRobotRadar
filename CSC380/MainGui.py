@@ -108,7 +108,6 @@ class Map:
             pygame.draw.circle(screen, "PURPLE", (obstacle.GetX(), obstacle.GetY()), 6)
 
 
-
 # functions
 def ChangeMovementMode(mode):
     global Current_Movement_Mode
@@ -150,9 +149,10 @@ def MoveRobot(down, ang):
     global RobotX, RobotY
     rad = math.radians(-1 * ang)
     velocity = 2
-    if not RobotX >= RobotMap.Map_rect.topright[0] - 50 or RobotX <= RobotMap.Map_rect.topleft[0]:
+    predicted_coords = (RobotX - down * (velocity * math.sin(rad)), RobotY + down * (velocity * math.cos(rad)))
+    if not predicted_coords[0] >= RobotMap.Map_rect.topright[0] - 50 or predicted_coords[0] <= RobotMap.Map_rect.topleft[0]:
         RobotX -= down * (velocity * math.sin(rad))
-    if not RobotY >= RobotMap.Map_rect.bottomleft[1] - 50 or RobotY <= RobotMap.Map_rect.topleft[1]:
+    if not predicted_coords[1] >= RobotMap.Map_rect.bottomleft[1] - 50 or predicted_coords[1] <= RobotMap.Map_rect.topleft[1]:
         RobotY += down * (velocity * math.cos(rad))
 
 
