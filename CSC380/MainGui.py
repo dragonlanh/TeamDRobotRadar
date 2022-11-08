@@ -3,6 +3,8 @@ import requests
 import threading
 import json
 import math
+import Classes
+import random
 
 pygame.init()
 HEIGHT = 600
@@ -80,33 +82,50 @@ class Map:
         self.position = pos
         self.width = width
         self.height = height
-
+        self.Obstacles = []
         # create rectangle for map
         self.Map_img = pygame.image.load(image).convert_alpha()
         self.Map_rect = pygame.Rect(pos, (width, height))
+        self.GenerateObstacle()
 
     def draw(self):
         pygame.draw.rect(screen, '#484e53', self.Map_rect)
-        screen.blit(self.Map_img, self.Map_rect, )
+        screen.blit(self.Map_img, self.Map_rect)
+        self.DrawObstacles()
+
+    def AddObstacles(self, X, Y):
+        newObstacle = Classes.Obstacle(X, Y)
+        self.Obstacles.append(newObstacle)
+
+    def GenerateObstacle(self):
+        for i in range(5):
+            randomLoc = (self.Map_rect.topleft[0] + random.randint(20, 400), self.Map_rect.topleft[1] + random.randint(20, 400))
+            newObstacle = Classes.Obstacle(randomLoc[0], randomLoc[1])
+            self.Obstacles.append(newObstacle)
+
+    def DrawObstacles(self):
+        for obstacle in self.Obstacles:
+            pygame.draw.circle(screen, "PURPLE", (obstacle.GetX(), obstacle.GetY()), 6)
+
 
 
 # functions
 def ChangeMovementMode(mode):
     global Current_Movement_Mode
     if mode == "remote":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/remote")
+        res = requests.get("http://129.3.216.119:8080/ChangeMoveMode/remote")
         Current_Movement_Mode = "remote"
         print(res)
     elif mode == "auto":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/auto")
+        res = requests.get("http://129.3.216.119:8080/ChangeMoveMode/auto")
         Current_Movement_Mode = "auto"
         print(res)
     elif mode == "roam":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/roam")
+        res = requests.get("http://129.3.216.119:8080/ChangeMoveMode/roam")
         Current_Movement_Mode = "roam"
         print(res)
     elif mode == "idle":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/idle")
+        res = requests.get("http://129.3.216.119:8080/ChangeMoveMode/idle")
         Current_Movement_Mode = "idle"
     else:
         print("error, mode not accepted")
@@ -114,7 +133,7 @@ def ChangeMovementMode(mode):
 
 def SendButtonPress(buttons):
     try:
-        res = requests.get(f"http://192.168.1.7:8080/ButtonPress/{buttons}", timeout=0.01)
+        res = requests.get(f"http://129.3.216.119:8080/ButtonPress/{buttons}", timeout=0.01)
         print(res)
     except requests.exceptions.Timeout as err:
         pass
@@ -127,18 +146,14 @@ def UpdateCurrentButton(button):
     return button
 
 
-def MoveRobot(left, down, right, up, ang):
+def MoveRobot(down, ang):
     global RobotX, RobotY
-    rad = math.radians(ang)
+    rad = math.radians(-1 * ang)
     velocity = 2
-    if not RobotX >= RobotMap.Map_rect.topright[0] - 50:
-        RobotX -= down * (velocity * math.asin(rad))
-    if not RobotX <= RobotMap.Map_rect.topleft[0]:
-        RobotX -= down * (velocity * math.asin(rad))
-    if not RobotY >= RobotMap.Map_rect.bottomleft[1] - 50:
-        RobotY += down * (velocity * math.acos(rad))
-    if not RobotY <= RobotMap.Map_rect.topleft[1]:
-        RobotY += down * (velocity * math.acos(rad))
+    if not RobotX >= RobotMap.Map_rect.topright[0] - 50 or RobotX <= RobotMap.Map_rect.topleft[0]:
+        RobotX -= down * (velocity * math.sin(rad))
+    if not RobotY >= RobotMap.Map_rect.bottomleft[1] - 50 or RobotY <= RobotMap.Map_rect.topleft[1]:
+        RobotY += down * (velocity * math.cos(rad))
 
 
 def RotateRobot(left, down, right, up):
@@ -157,10 +172,6 @@ def blitRotate2(surf, image, topleft, angle):
     rotated_image = pygame.transform.rotate(image, angle)
     new_rect = rotated_image.get_rect(center=image.get_rect(topleft=topleft).center)
     surf.blit(rotated_image, new_rect.topleft)
-
-
-def CalculateDirection(left, down, right, up, ang):
-    pass
 
 
 # load images
@@ -212,7 +223,7 @@ while running:
 
             if keys[pygame.K_s] or keys[pygame.K_DOWN]:
                 CurrentButton = UpdateCurrentButton("s")
-                MoveRobot(0, 1, 0, 0, angle)
+                MoveRobot(1, angle)
 
             if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                 angle -= 1
@@ -221,7 +232,7 @@ while running:
 
             if keys[pygame.K_w] or keys[pygame.K_UP]:
                 CurrentButton = UpdateCurrentButton("w")
-                MoveRobot(0, -1, 0, 0, angle)
+                MoveRobot(-1, angle)
 
     UpdateRobotRect(RobotX, RobotY)
     pygame.display.update()
