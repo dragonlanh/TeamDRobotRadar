@@ -98,7 +98,7 @@ class Map:
         self.Obstacles.append(newObstacle)
 
     def GenerateObstacle(self):
-        for i in range(5):
+        for i in range(1):
             randomLoc = (self.Map_rect.topleft[0] + random.randint(20, 400), self.Map_rect.topleft[1] + random.randint(20, 400))
             newObstacle = Classes.Obstacle(randomLoc[0], randomLoc[1])
             self.Obstacles.append(newObstacle)
@@ -106,6 +106,7 @@ class Map:
     def DrawObstacles(self):
         for obstacle in self.Obstacles:
             pygame.draw.circle(screen, "PURPLE", (obstacle.GetX(), obstacle.GetY()), 6)
+
 
 
 # functions
@@ -149,12 +150,16 @@ def MoveRobot(down, ang):
     global RobotX, RobotY
     rad = math.radians(-1 * ang)
     velocity = 2
+    ob = RobotMap.Obstacles[0]
     predicted_coords = (RobotX - down * (velocity * math.sin(rad)), RobotY + down * (velocity * math.cos(rad)))
-    if not predicted_coords[0] >= RobotMap.Map_rect.topright[0] - 50 or predicted_coords[0] <= RobotMap.Map_rect.topleft[0]:
-        RobotX -= down * (velocity * math.sin(rad))
-    if not predicted_coords[1] >= RobotMap.Map_rect.bottomleft[1] - 50 or predicted_coords[1] <= RobotMap.Map_rect.topleft[1]:
-        RobotY += down * (velocity * math.cos(rad))
-
+    if not predicted_coords[0] >= RobotMap.Map_rect.topright[0] - 50:
+        if not predicted_coords[0] <= RobotMap.Map_rect.topleft[0]:
+            if not predicted_coords[1] >= RobotMap.Map_rect.bottomleft[1] - 50:
+                if not predicted_coords[1] <= RobotMap.Map_rect.topleft[1]:
+                    if not math.isclose(predicted_coords[0] + 25, ob.GetX(), abs_tol = .4):
+                        if not  math.isclose(predicted_coords[1] + 25, ob.GetY()-2, abs_tol = .4):
+                            RobotX -= down * (velocity * math.sin(rad))
+                            RobotY += down * (velocity * math.cos(rad))
 
 def RotateRobot(left, down, right, up):
     pygame.transform.rotate(Robot_img, 90)
@@ -165,6 +170,8 @@ def UpdateRobotRect(x, y):
     Robot_rect.y = y
     new_rect = rotated_image.get_rect(center=Robot_img.get_rect(topleft=Robot_rect.topleft).center)
     screen.blit(rotated_image, new_rect)
+    # pygame.draw.circle(screen, "BLUE", (x + 25, y + 25), 6)
+
 
 
 # not in use \/
