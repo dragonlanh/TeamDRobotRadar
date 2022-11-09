@@ -60,7 +60,6 @@ app.get('/GetMovement', (req, res) => {
     res.send(MovementPress);
 });
 
-app.listen(
-    PORT,
+app.listen(process.env.PORT || PORT,
     () => console.log(`it's alive on http://localhost:${PORT}`)
 )
