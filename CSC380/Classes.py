@@ -8,3 +8,8 @@ class Obstacle:
 
     def GetY(self):
         return self.LocationY
+
+    def ConvertToJson(self):
+        data = {"X": self.LocationX, "Y": self.LocationY}
+        return data
+    
