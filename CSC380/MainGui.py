@@ -96,12 +96,28 @@ class Map:
     def AddObstacles(self, X, Y):
         newObstacle = Classes.Obstacle(X, Y)
         self.Obstacles.append(newObstacle)
+        self.MakeObstacleJson()
+
+    def RemoveObstacle(self):
+        pass
+
+    def MakeObstacleJson(self):
+        ConpiledJson = {}
+        index = 0
+        for obstacle in self.Obstacles:
+            index += 1
+            ConpiledJson.update({"obstacle" + str(index): obstacle.ConvertToJson()})
+        JsonData = json.dumps(ConpiledJson)
+        print(JsonData)
+        res = requests.get("https://teamdserver.herokuapp.com/ObstacleJson/" + str(JsonData))
+        print(res)
 
     def GenerateObstacle(self):
-        for i in range(1):
+        for i in range(3):
             randomLoc = (self.Map_rect.topleft[0] + random.randint(20, 400), self.Map_rect.topleft[1] + random.randint(20, 400))
             newObstacle = Classes.Obstacle(randomLoc[0], randomLoc[1])
             self.Obstacles.append(newObstacle)
+        self.MakeObstacleJson()
 
     def DrawObstacles(self):
         for obstacle in self.Obstacles:
