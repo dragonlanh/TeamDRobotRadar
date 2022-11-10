@@ -102,6 +102,7 @@ class Map:
         self.MakeObstacleJson()
         
     def CreateObstacle(self):
+        # if ObstacleFound = True
         # hit endpoint (to be created)
         # get distance from sensor from endpoint
         # use same method as predicted coords to get x y value
