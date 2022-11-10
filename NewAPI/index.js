@@ -18,6 +18,8 @@ const hostname = "192.168.1.7"; // change to your ipv4 address for testing, run 
 
 Mode = "idle";
 ButtonPress = "";
+ChangeTurn = "";
+MovementPress = "";
 
 app.use(express.json());
 
