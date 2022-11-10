@@ -97,6 +97,13 @@ class Map:
         newObstacle = Classes.Obstacle(X, Y)
         self.Obstacles.append(newObstacle)
         self.MakeObstacleJson()
+        
+    def CreateObstacle(self):
+        # hit endpoint
+        # get distance from sensor
+        # use same method as predicted coords to get x y value
+        # call self.addObstacles(x, y)
+        pass
 
     def RemoveObstacle(self):
         pass
