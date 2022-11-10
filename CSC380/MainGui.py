@@ -113,19 +113,19 @@ class Map:
 def ChangeMovementMode(mode):
     global Current_Movement_Mode
     if mode == "remote":
-        res = requests.get("http://129.3.216.119:8080/ChangeMoveMode/remote")
+        res = requests.get("https://teamdserver.herokuapp.com/ChangeMoveMode/remote")
         Current_Movement_Mode = "remote"
         print(res)
     elif mode == "auto":
-        res = requests.get("http://129.3.216.119:8080/ChangeMoveMode/auto")
+        res = requests.get("https://teamdserver.herokuapp.com/ChangeMoveMode/auto")
         Current_Movement_Mode = "auto"
         print(res)
     elif mode == "roam":
-        res = requests.get("http://129.3.216.119:8080/ChangeMoveMode/roam")
+        res = requests.get("https://teamdserver.herokuapp.com/ChangeMoveMode/roam")
         Current_Movement_Mode = "roam"
         print(res)
     elif mode == "idle":
-        res = requests.get("http://129.3.216.119:8080/ChangeMoveMode/idle")
+        res = requests.get("https://teamdserver.herokuapp.com/ChangeMoveMode/idle")
         Current_Movement_Mode = "idle"
     else:
         print("error, mode not accepted")
@@ -133,7 +133,7 @@ def ChangeMovementMode(mode):
 
 def SendButtonPress(buttons):
     try:
-        res = requests.get(f"http://129.3.216.119:8080/ButtonPress/{buttons}", timeout=0.01)
+        res = requests.get(f"https://teamdserver.herokuapp.com/ButtonPress/{buttons}", timeout=0.01)
         print(res)
     except requests.exceptions.Timeout as err:
         pass
