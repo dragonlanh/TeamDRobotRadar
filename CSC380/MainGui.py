@@ -202,7 +202,7 @@ def UpdateRobotRect(x, y):
 
 def GetInfo():
     try:
-        res = requests.get("http://192.168.1.7:8080/info")
+        res = requests.get("https://teamdserver.herokuapp.com/info")
         serverdata = res.content.decode()
         converted = json.loads(serverdata)
         return converted
