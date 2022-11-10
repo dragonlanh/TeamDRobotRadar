@@ -16,6 +16,9 @@ icon_img = pygame.image.load("./logo.ico")
 pygame.display.set_icon(icon_img)
 Current_Movement_Mode = "idle"
 CurrentButton = "none"
+ServerConnection = "False"
+RobotStatus = "Not Connected"
+ObstacleFound = False
 
 
 # button class, probably going move to a different file
@@ -197,12 +200,14 @@ def UpdateRobotRect(x, y):
     # pygame.draw.circle(screen, "BLUE", (x + 25, y + 25), 6)
 
 
-
-# not in use \/
-def blitRotate2(surf, image, topleft, angle):
-    rotated_image = pygame.transform.rotate(image, angle)
-    new_rect = rotated_image.get_rect(center=image.get_rect(topleft=topleft).center)
-    surf.blit(rotated_image, new_rect.topleft)
+def GetInfo():
+    try:
+        res = requests.get("http://192.168.1.7:8080/info")
+        serverdata = res.content.decode()
+        converted = json.loads(serverdata)
+        return converted
+    except requests.ConnectionError as err:
+        return None
 
 
 # load images
@@ -222,14 +227,39 @@ RobotX = Robot_rect.centerx
 RobotY = Robot_rect.centery
 
 # adding text
-ConnText = pygame.font.Font(None, 30).render("Robot : Connected", True, "#000000")
+font = pygame.font.Font(None, 30)
+ConnText = font.render(f"Server : {ServerConnection}", True, "#000000")
 ConnTextRect = ConnText.get_rect()
 ConnTextRect.topleft = (20, 400)
+
+ModeText = font.render(f"Mode : {Current_Movement_Mode}", True, "#000000")
+ModeTextRect = ConnText.get_rect()
+ModeTextRect.topleft = (20, 430)
+
+RobotText = font.render(f"Robot Status : {RobotStatus}", True, "#000000")
+RobotTextRect = RobotText.get_rect()
+RobotTextRect.topleft = (20, 460)
+# robot image
 rotated_image = pygame.transform.rotate(Robot_img, 0)
 # main loop
 angle = 0
 running = True
 while running:
+    
+    data = GetInfo()
+    if data is not None:
+        Current_Movement_Mode = data["Mode"]
+        ServerConnection = "Connected"
+        RobotStatus = data["RobotStatus"]
+        ConnText = font.render(f"Server : {ServerConnection}", True, "#000000")
+        ModeText = font.render(f"Mode : {Current_Movement_Mode}", True, "#000000")
+        RobotText = font.render(f"Robot Status : {RobotStatus}", True, "#000000")
+        if data["ObstacleFound"] == "false":
+            ObstacleFound = False
+        else:
+            ObstacleFound = True
+    else:
+        ServerConnection = "Connection Error"
     # update screen
     screen.fill("#DCE5ED")
     IdleButton.draw()
@@ -238,6 +268,8 @@ while running:
     RoamButton.draw()
     RobotMap.draw()
     screen.blit(ConnText, ConnTextRect)
+    screen.blit(ModeText, ModeTextRect)
+    screen.blit(RobotText, RobotTextRect)
     # placeholder camera box
     camera = pygame.Rect(900, 20, 200, 200)
     pygame.draw.rect(screen, '#000000', camera)
