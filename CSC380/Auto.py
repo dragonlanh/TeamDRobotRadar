@@ -1,5 +1,5 @@
-from re import X
-from time import sleep
+import json
+
 import pygame
 import requests
 
@@ -11,6 +11,8 @@ scene = pygame.display.set_mode(screensize)
 currentMovement = "none"
 turned = False
 facing = "up"
+turnControl = ""
+speed = .45
 
 robotBody = pygame.image.load("kermit.png")
 robotRect = robotBody.get_rect()
@@ -27,65 +29,76 @@ def robot(x, y):
     robotX = x
     robotY = y
 
-def robotControl(left, down, right, up):
-    global robotX, robotY
-    speed = 5
-    robotX += speed*left
-    robotX += speed*right
-    robotY -= speed*down
-    robotY -= speed*up
-
 def faceRight():
+    global facing
+    global currentMovement
+    global turnControl
     if facing == "up":
         currentMovement = UpdateCurrentMovement("right")
-    if facing == "left":
+    elif facing == "left":
         currentMovement = UpdateCurrentMovement("180")
-    if facing == "down":
+    elif facing == "down":
         currentMovement = UpdateCurrentMovement("left")
-    facing == "right"
+    #turnControl = isTurned()
+    facing = "right"
 
 def faceUp():
+    global facing
+    global currentMovement
+    global turnControl
     if facing == "right":
         currentMovement = UpdateCurrentMovement("left")
-    if facing == "left":
+    elif facing == "left":
         currentMovement = UpdateCurrentMovement("right")
-    if facing == "down":
+    elif facing == "down":
         currentMovement = UpdateCurrentMovement("180")
-    facing == "up"
+    #turnControl = isTurned()
+    facing = "up"
 
 def faceLeft():
+    global facing
+    global currentMovement
+    global turnControl
     if facing == "up":
         currentMovement = UpdateCurrentMovement("left")
-    if facing == "right":
+    elif facing == "right":
         currentMovement = UpdateCurrentMovement("180")
-    if facing == "down":
+    elif facing == "down":
         currentMovement = UpdateCurrentMovement("right")
-    facing == "left"
+    #turnControl = isTurned()
+    facing = "left"
+
 
 def faceDown():
+    global facing
+    global currentMovement
+    global turnControl
     if facing == "up":
         currentMovement = UpdateCurrentMovement("180")
-    if facing == "left":
+    elif facing == "left":
         currentMovement = UpdateCurrentMovement("left")
-    if facing == "right":
+    elif facing == "right":
         currentMovement = UpdateCurrentMovement("right")
-    facing == "down"
+    #turnControl = isTurned()
+    facing = "down"
+
 
 def surface(x, y):
     scene.blit(groundSprite, (x, y))
 
+
 def ChangeMovementMode(mode):
     if mode == "remote":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/remote")
+        res = requests.get("http://192.168.1.130:8080/ChangeMoveMode/remote")
         print(res)
     elif mode == "auto":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/auto")
+        res = requests.get("http://192.168.1.130:8080/ChangeMoveMode/auto")
         print(res)
     elif mode == "roam":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/roam")
+        res = requests.get("http://192.168.1.130:8080/ChangeMoveMode/roam")
         print(res)
     elif mode == "idle":
-        res = requests.get("http://192.168.1.7:8080/ChangeMoveMode/idle")
+        res = requests.get("http://192.168.1.130:8080/ChangeMoveMode/idle")
         print(res)
     else:
         print("error, mode not accepted")
@@ -93,11 +106,10 @@ def ChangeMovementMode(mode):
 
 def SendMovement(movement):
     try:
-        res = requests.get(f"http://192.168.1.7:8080/ButtonPress/{movement}", timeout=0.01)
+        res = requests.get(f"http://192.168.1.130:8080/ButtonPress/{movement}", timeout=.5)
         print(res)
     except requests.exceptions.Timeout as err:
         pass
-
 
 def UpdateCurrentMovement(movement):
     if movement != currentMovement:
@@ -105,73 +117,107 @@ def UpdateCurrentMovement(movement):
         return movement
     return movement
 
+def isTurned():
+    try:
+        res = requests.get("http://192.168.1.130:8080/GetTurn")
+        data = res.content.decode()
+        converted = json.loads(data)
+        print(converted['ChangeTurn'])
+        return converted['ChangeTurn']
+    except requests.exceptions.Timeout as err:
+        print("timeout error")
+
+
 starting = True
 while starting:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             starting = False
-            
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             pos = pygame.mouse.get_pos()
             print(pos)
-            
+
+            turnedRight = False
+            turnedUp = False
+
             #right
             while (pos[0] - 50) > robotX:
                 if facing != "right" and turned == False:
                     faceRight()
+                    #while turnControl != "turned":
+                     #   turnControl = isTurned()
                     turned = True
-                currentMovement = UpdateCurrentMovement("fwd")
-                robotX += .05
-                robot(robotX, robotY)
-                pygame.display.flip()
-                for i in range(0, 500, 64):
-                    for j in range(0, 500, 64):
-                        surface(i, j)
+                if isTurned() == "turned":
+                    while (pos[0] - 50) > robotX:
+                        currentMovement = UpdateCurrentMovement("fwd")
+                        robotX += speed
+                        robot(robotX, robotY)
+                        pygame.display.flip()
+                        for i in range(0, 500, 64):
+                            for j in range(0, 500, 64):
+                                surface(i, j)
+                turnedRight = True
 
             turned = False
-            
-            #left
-            while (pos[0] - 50) < robotX:
-                if facing != "left" and turned == False:
-                    faceLeft()
-                    turned = True
-                currentMovement = UpdateCurrentMovement("fwd")
-                robotX -= .05
-                robot(robotX, robotY)
-                pygame.display.flip()
-                for i in range(0, 500, 64):
-                    for j in range(0, 500, 64):
-                        surface(i, j)
+
+            # left
+            if turnedRight == False:
+                while (pos[0] - 50) < robotX:
+                    if facing != "left" and turned == False:
+                        faceLeft()
+                      #  while turnControl != "turned":
+                       #     turnControl = isTurned()
+                        turned = True
+                    if isTurned() == "turned":
+                        while (pos[0] - 50) < robotX:
+                            currentMovement = UpdateCurrentMovement("fwd")
+                            robotX -= speed
+                            robot(robotX, robotY)
+                            pygame.display.flip()
+                            for i in range(0, 500, 64):
+                                for j in range(0, 500, 64):
+                                    surface(i, j)
 
             turned = False
-            
-            #up
+
+            # up
             while (pos[1] - 50) < robotY:
                 if facing != "up" and turned == False:
                     faceUp()
+                    #while turnControl != "turned":
+                     #   turnControl = isTurned()
                     turned = True
-                currentMovement = UpdateCurrentMovement("fwd")
-                robotY -= .05
-                robot(robotX, robotY)
-                pygame.display.flip()
-                for i in range(0, 500, 64):
-                    for j in range(0, 500, 64):
-                        surface(i, j)
+                if isTurned() == "turned":
+                    while (pos[1] - 50) < robotY:
+                        currentMovement = UpdateCurrentMovement("fwd")
+                        robotY -= speed
+                        robot(robotX, robotY)
+                        pygame.display.flip()
+                        for i in range(0, 500, 64):
+                            for j in range(0, 500, 64):
+                                surface(i, j)
+                turnedUp = True
 
             turned = False
-            
-            #down
-            while (pos[1] - 50) > robotY:
-                if facing != "down" and turned == False:
-                    faceDown()
-                    turned = True
-                currentMovement = UpdateCurrentMovement("fwd")
-                robotY += .05
-                robot(robotX, robotY)
-                pygame.display.flip()
-                for i in range(0, 500, 64):
-                    for j in range(0, 500, 64):
-                        surface(i, j)
+
+            # down
+            if turnedUp == False:
+                while (pos[1] - 50) > robotY:
+                    if facing != "down" and turned == False:
+                        faceDown()
+                      #  while turnControl != "turned":
+                       #     turnControl = isTurned()
+                        turned = True
+                    if isTurned() == "turned":
+                        while (pos[1] - 50) > robotY:
+                            currentMovement = UpdateCurrentMovement("fwd")
+                            robotY += speed
+                            robot(robotX, robotY)
+                            pygame.display.flip()
+                            for i in range(0, 500, 64):
+                                for j in range(0, 500, 64):
+                                    surface(i, j)
 
             turned = False
 
