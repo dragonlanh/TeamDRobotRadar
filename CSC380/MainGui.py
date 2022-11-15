@@ -249,6 +249,7 @@ angle = 0
 distance = 0
 facing = "North"
 running = True
+frame = 0
 while running:
     
     data = GetInfo()
@@ -309,6 +310,10 @@ while running:
                 DrawObstacle(distance, angle)
     UpdateRobotRect(RobotX, RobotY)
     pygame.display.update()
+        if frame == 59:
+        frame = 0
+    else:
+        frame += 1
     clock.tick(60)
     pygame.display.flip()
 pygame.quit()
