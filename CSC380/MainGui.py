@@ -1,3 +1,5 @@
+
+import sys
 import pygame
 import requests
 import threading
@@ -16,9 +18,6 @@ icon_img = pygame.image.load("./logo.ico")
 pygame.display.set_icon(icon_img)
 Current_Movement_Mode = "idle"
 CurrentButton = "none"
-ServerConnection = "False"
-RobotStatus = "Not Connected"
-ObstacleFound = False
 
 
 # button class, probably going move to a different file
@@ -99,16 +98,6 @@ class Map:
     def AddObstacles(self, X, Y):
         newObstacle = Classes.Obstacle(X, Y)
         self.Obstacles.append(newObstacle)
-        self.MakeObstacleJson()
-        
-    def CreateObstacle(self):
-        # if ObstacleFound = True
-        # hit endpoint (to be created)
-        # get distance from sensor from endpoint
-        # use same method as predicted coords to get x y value
-        # basically thinking predicted coords + distance from sensor to get x and y
-        # call self.addObstacles(x, y)
-        pass
 
     def RemoveObstacle(self):
         pass
@@ -124,12 +113,12 @@ class Map:
         res = requests.get("https://teamdserver.herokuapp.com/ObstacleJson/" + str(JsonData))
         print(res)
 
+
     def GenerateObstacle(self):
-        for i in range(3):
+        for i in range(1):
             randomLoc = (self.Map_rect.topleft[0] + random.randint(20, 400), self.Map_rect.topleft[1] + random.randint(20, 400))
             newObstacle = Classes.Obstacle(randomLoc[0], randomLoc[1])
             self.Obstacles.append(newObstacle)
-        self.MakeObstacleJson()
 
     def DrawObstacles(self):
         for obstacle in self.Obstacles:
@@ -176,7 +165,7 @@ def UpdateCurrentButton(button):
 
 def MoveRobot(down, ang):
     global RobotX, RobotY
-    rad = math.radians(-1 * ang)
+    rad = math.radians(-1*ang)
     velocity = 2
     ob = RobotMap.Obstacles[0]
     predicted_coords = (RobotX - down * (velocity * math.sin(rad)), RobotY + down * (velocity * math.cos(rad)))
@@ -188,6 +177,35 @@ def MoveRobot(down, ang):
                         if not  math.isclose(predicted_coords[1] + 25, ob.GetY()-2, abs_tol = .4):
                             RobotX -= down * (velocity * math.sin(rad))
                             RobotY += down * (velocity * math.cos(rad))
+                          
+def UpdateCurrentFacing(angle):
+    global facing
+    rad = math.radians(angle)
+    node = math.sin(rad)
+    node1 = math.cos(rad)
+    if node >= 0 and node <= 1: 
+        if node == 1:
+            return "West"
+        elif node1 == 1:
+            return "North"
+        elif node1 == 0:
+            return "North"
+        elif node1 > 0:
+            return "North West"
+        elif node1 < 0:
+            return "South West"
+    if node < 0 and node >= -1:
+        if node == -1:
+            return "East"
+        elif node1 == -1:
+            return "South"
+        elif node1 > 0:
+            return "North East"
+        if node1 < 0:
+            return "South East"
+    
+
+
 
 def RotateRobot(left, down, right, up):
     pygame.transform.rotate(Robot_img, 90)
@@ -196,10 +214,9 @@ def RotateRobot(left, down, right, up):
 def UpdateRobotRect(x, y):
     Robot_rect.x = x
     Robot_rect.y = y
-    new_rect = rotated_image.get_rect(center=Robot_img.get_rect(topleft=Robot_rect.topleft).center)
-    screen.blit(rotated_image, new_rect)
+    new_rect = new_image.get_rect(center=Robot_img.get_rect(topleft=Robot_rect.topleft).center)
+    screen.blit(new_image, new_rect)
     # pygame.draw.circle(screen, "BLUE", (x + 25, y + 25), 6)
-
 
 def GetInfo():
     try:
@@ -228,39 +245,17 @@ RobotX = Robot_rect.centerx
 RobotY = Robot_rect.centery
 
 # adding text
-font = pygame.font.Font(None, 30)
-ConnText = font.render(f"Server : {ServerConnection}", True, "#000000")
+ConnText = pygame.font.Font(None, 30).render("Robot : Connected", True, "#000000")
 ConnTextRect = ConnText.get_rect()
 ConnTextRect.topleft = (20, 400)
-
-ModeText = font.render(f"Mode : {Current_Movement_Mode}", True, "#000000")
-ModeTextRect = ConnText.get_rect()
-ModeTextRect.topleft = (20, 430)
-
-RobotText = font.render(f"Robot Status : {RobotStatus}", True, "#000000")
-RobotTextRect = RobotText.get_rect()
-RobotTextRect.topleft = (20, 460)
-# robot image
-rotated_image = pygame.transform.rotate(Robot_img, 0)
-# main loop
+new_image = pygame.transform.rotate(Robot_img, 0)
+# main loop =====================================================================================================
+# Get the distance between the servo and obstacles
+#distance = 
 angle = 0
+facing = "North"
 running = True
 while running:
-    
-    data = GetInfo()
-    if data is not None:
-        Current_Movement_Mode = data["Mode"]
-        ServerConnection = "Connected"
-        RobotStatus = data["RobotStatus"]
-        ConnText = font.render(f"Server : {ServerConnection}", True, "#000000")
-        ModeText = font.render(f"Mode : {Current_Movement_Mode}", True, "#000000")
-        RobotText = font.render(f"Robot Status : {RobotStatus}", True, "#000000")
-        if data["ObstacleFound"] == "false":
-            ObstacleFound = False
-        else:
-            ObstacleFound = True
-    else:
-        ServerConnection = "Connection Error"
     # update screen
     screen.fill("#DCE5ED")
     IdleButton.draw()
@@ -269,8 +264,6 @@ while running:
     RoamButton.draw()
     RobotMap.draw()
     screen.blit(ConnText, ConnTextRect)
-    screen.blit(ModeText, ModeTextRect)
-    screen.blit(RobotText, RobotTextRect)
     # placeholder camera box
     camera = pygame.Rect(900, 20, 200, 200)
     pygame.draw.rect(screen, '#000000', camera)
@@ -283,20 +276,29 @@ while running:
             if keys[pygame.K_a] or keys[pygame.K_LEFT]:
                 angle += 1
                 CurrentButton = UpdateCurrentButton("a")
-                rotated_image = pygame.transform.rotate(Robot_img, angle)
+                new_image = pygame.transform.rotate(Robot_img, angle)
+                facing = UpdateCurrentFacing(angle)
+                print(facing)
+                
+                
 
             if keys[pygame.K_s] or keys[pygame.K_DOWN]:
                 CurrentButton = UpdateCurrentButton("s")
                 MoveRobot(1, angle)
+                
 
             if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                 angle -= 1
                 CurrentButton = UpdateCurrentButton("d")
-                rotated_image = pygame.transform.rotate(Robot_img, angle)
+                new_image = pygame.transform.rotate(Robot_img, angle)
+                facing = UpdateCurrentFacing(angle)
+                print(facing)
+               
 
             if keys[pygame.K_w] or keys[pygame.K_UP]:
                 CurrentButton = UpdateCurrentButton("w")
                 MoveRobot(-1, angle)
+               
 
     UpdateRobotRect(RobotX, RobotY)
     pygame.display.update()
