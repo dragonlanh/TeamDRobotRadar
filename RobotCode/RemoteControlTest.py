@@ -1,40 +1,52 @@
 from gopigo import *
+import easygopigo
 import sys
 import requests
 import json
 
+Usensor = easygopigo.UltraSonicSensor()
+
 
 def GetMovementMode():
-    res = requests.get("http://192.168.1.7:8080/MovementMode")
-    data = res.content.decode()
-    converted = json.loads(data)
-    print(converted['Mode'])
-    return converted['Mode']
+    try:
+        res = requests.get("http://192.168.1.19:8080/MovementMode", timeout=0.1)
+        data = res.content.decode()
+        converted = json.loads(data)
+        print(converted['Mode'])
+        return converted['Mode']
+    except requests.exceptions.Timeout as err:
+        print("timeout error")
 
 
 def GetActiveButton():
-    res = requests.get("http://192.168.1.7:8080/GetButton")
-    data = res.content.decode()
-    converted = json.loads(data)
-    print(converted['ButtonPress'])
-    return converted['ButtonPress']
+    try:
+        res = requests.get("http://192.168.1.19:8080/GetButton", timeout=0.1)
+        data = res.content.decode()
+        converted = json.loads(data)
+        print(converted['ButtonPress'])
+        return converted['ButtonPress']
+    except requests.exceptions.Timeout as err:
+        print("button error")
 
 
 while True:
-    if GetMovementMode == "idle":
+    # print("running")
+    if GetMovementMode() == "idle":
         pass
-    if GetmovementMode == "remote":
-        button = GetActiveButton
+    if GetMovementMode() == "remote":
+        button = GetActiveButton()
         if button == "w":
-            print(button)
+            fwd()
         elif button == "a":
-            print(button)
+            left_rot()
         elif button == "s":
-            print(button)
+            bwd()
         elif button == "d":
-            print(button)
+            right_rot()
         else:
             print(button)
+
+
 
 
 
