@@ -102,18 +102,11 @@ class Map:
         self.Obstacles.append(newObstacle)
         try:
             res = requests.get(
-                f"https://teamdserver.herokuapp.com/ObjectJson/{newObstacle.GetID()}/{newObstacle.GetX()}/{newObstacle.GetY()}",
-                timeout=0.01)
+                f"http://192.168.1.19:8080/ObjectJson/{newObstacle.GetID()}/{newObstacle.GetX()}/{newObstacle.GetY()}",
+                timeout=0.05)
             print(res)
         except requests.exceptions.Timeout as err:
-            pass
-
-    def CreateObstacle(self):
-        # hit endpoint
-        # get distance from sensor
-        # use same method as predicted coords to get x y value
-        # call self.addObstacles(x, y)
-        pass
+            print("timeout error")
 
     def RemoveObstacle(self):
         pass
@@ -180,14 +173,11 @@ def MoveRobot(down, ang):
     global RobotX, RobotY
     rad = math.radians(-1 * ang)
     velocity = 2
-    # ob = RobotMap.Obstacles[0]
     predicted_coords = (RobotX - down * (velocity * math.sin(rad)), RobotY + down * (velocity * math.cos(rad)))
     if not predicted_coords[0] >= RobotMap.Map_rect.topright[0] - 50:
         if not predicted_coords[0] <= RobotMap.Map_rect.topleft[0]:
             if not predicted_coords[1] >= RobotMap.Map_rect.bottomleft[1] - 50:
                 if not predicted_coords[1] <= RobotMap.Map_rect.topleft[1]:
-                    # if not math.isclose(predicted_coords[0] + 25, ob.GetX(), abs_tol=.4):
-                    # if not math.isclose(predicted_coords[1] + 25, ob.GetY() - 2, abs_tol=.4):
                     RobotX -= down * (velocity * math.sin(rad))
                     RobotY += down * (velocity * math.cos(rad))
 
@@ -283,7 +273,6 @@ while running:
         ConnText = font.render(f"Server : {ServerConnection}", True, "#000000")
         ModeText = font.render(f"Mode : {Current_Movement_Mode}", True, "#000000")
         RobotText = font.render(f"Robot Status : {RobotStatus}", True, "#000000")
-        print(data["ObstacleFound"])
         if data["ObstacleFound"] == False:
             ObstacleFound = False
         else:
