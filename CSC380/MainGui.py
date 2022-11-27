@@ -105,26 +105,18 @@ class Map:
         newObstacle = Classes.Obstacle(len(self.Obstacles) + 1, X, Y)
         self.Obstacles.append(newObstacle)
         try:
-            res = requests.get(
-                f"http://192.168.1.19:8080/ObjectJson/{newObstacle.GetID()}/{newObstacle.GetX()}/{newObstacle.GetY()}",
-                timeout=0.05)
+            res = requests.post("http://192.168.1.7:8080/ObstacleJson", data=self.MakeObstacleJson(), timeout=1)
             print(res)
         except requests.exceptions.Timeout as err:
             print("timeout error")
 
-    def RemoveObstacle(self):
-        pass
 
     def MakeObstacleJson(self):
-        ConpiledJson = {}
-        index = 0
+        compiledJson = {}
         for obstacle in self.Obstacles:
-            index += 1
-            ConpiledJson.update({str(index): obstacle.ConvertToJson()})
-            coords = obstacle.GetXY_Adjusted()
-        JsonData = json.dumps(ConpiledJson)
-        print(JsonData)
-        # res = requests.get(f"https://teamdserver.herokuapp.com/ObstacleJson/{JsonData}")
+            compiledJson[obstacle.ID] = (obstacle.GetXY_Adjusted())
+        print(compiledJson)
+        return compiledJson
 
     def GenerateObstacle(self):
         for i in range(3):
