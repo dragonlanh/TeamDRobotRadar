@@ -4,6 +4,7 @@ import json
 import math
 import Classes
 import random
+import time
 
 pygame.init()
 HEIGHT = 600
@@ -24,7 +25,6 @@ facing = "up"
 turnControl = ""
 speed = .45
 CurrentButtonBool = "false"
-
 
 
 # button class, probably going move to a different file
@@ -140,8 +140,9 @@ def faceRight():
         currentMovement = UpdateCurrentMovement("180")
     elif facing == "down":
         currentMovement = UpdateCurrentMovement("left")
-    #turnControl = isTurned()
+    # turnControl = isTurned()
     facing = "right"
+
 
 def faceUp():
     global facing
@@ -153,8 +154,9 @@ def faceUp():
         currentMovement = UpdateCurrentMovement("right")
     elif facing == "down":
         currentMovement = UpdateCurrentMovement("180")
-    #turnControl = isTurned()
+    # turnControl = isTurned()
     facing = "up"
+
 
 def faceLeft():
     global facing
@@ -166,7 +168,7 @@ def faceLeft():
         currentMovement = UpdateCurrentMovement("180")
     elif facing == "down":
         currentMovement = UpdateCurrentMovement("right")
-    #turnControl = isTurned()
+    # turnControl = isTurned()
     facing = "left"
 
 
@@ -180,8 +182,9 @@ def faceDown():
         currentMovement = UpdateCurrentMovement("left")
     elif facing == "right":
         currentMovement = UpdateCurrentMovement("right")
-    #turnControl = isTurned()
+    # turnControl = isTurned()
     facing = "down"
+
 
 def isTurned():
     try:
@@ -192,6 +195,7 @@ def isTurned():
         return converted['ChangeTurn']
     except requests.exceptions.Timeout as err:
         print("timeout error")
+
 
 def ChangeMovementMode(mode):
     global Current_Movement_Mode
@@ -216,7 +220,7 @@ def ChangeMovementMode(mode):
 
 def SendButtonPress(buttons):
     try:
-        res = requests.get(f"http://192.168.1.8:8080/ButtonPress/{buttons}", timeout=0.1)
+        res = requests.get(f"http://192.168.1.8:8080/ButtonPress/{buttons}", timeout=0.01)
         print(res)
     except requests.exceptions.Timeout as err:
         pass
@@ -228,6 +232,7 @@ def UpdateCurrentButton(button):
         return button
     return button
 
+
 def SendMovement(movement):
     try:
         res = requests.get(f"http://192.168.1.8:8080/ButtonPress/{movement}", timeout=.5)
@@ -235,11 +240,6 @@ def SendMovement(movement):
     except requests.exceptions.Timeout as err:
         pass
 
-def UpdateCurrentMovement(movement):
-    if movement != currentMovement:
-        SendMovement(movement)
-        return movement
-    return movement
 
 def SendButtonBool(bools):
     try:
@@ -255,6 +255,14 @@ def UpdateButtonBool(bool):
         return bool
     return bool
 
+
+def UpdateCurrentMovement(movement):
+    if movement != currentMovement:
+        SendMovement(movement)
+        return movement
+    return movement
+
+
 def MoveRobot(down, ang):
     global RobotX, RobotY
     rad = math.radians(-1 * ang)
@@ -266,6 +274,7 @@ def MoveRobot(down, ang):
                 if not predicted_coords[1] <= RobotMap.Map_rect.topleft[1]:
                     RobotX -= down * (velocity * math.sin(rad))
                     RobotY += down * (velocity * math.cos(rad))
+
 
 def AutoMoveRobot(down, ang):
     global RobotX, RobotY
@@ -322,7 +331,6 @@ def getDistance():
         distData = res.content.decode()
         print(distData)
         converted = json.loads(distData)
-        #print (converted['ChangeDistance'])
         return converted['ChangeDistance']
     except requests.exceptions.Timeout as err:
         return None
@@ -358,7 +366,7 @@ RobotTextRect = RobotText.get_rect()
 RobotTextRect.topleft = (20, 460)
 # robot image
 rotated_image = pygame.transform.rotate(Robot_img, 0)
-
+# main loop
 def updateScreen():
     screen.fill("#DCE5ED")
     IdleButton.draw()
@@ -675,5 +683,6 @@ while running:
         frame += 1
     clock.tick(60)
     pygame.display.flip()
+
 
 pygame.quit()
