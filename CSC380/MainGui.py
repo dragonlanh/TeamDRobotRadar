@@ -5,6 +5,7 @@ import math
 import Classes
 import random
 import time
+from PIL import Image
 
 pygame.init()
 HEIGHT = 600
@@ -129,6 +130,64 @@ class Map:
 
 
 # functions
+def SendMovement(movement):
+    try:
+        res = requests.get(f"http://192.168.1.8:8080/ButtonPress/{movement}", timeout=.5)
+        print(res)
+    except requests.exceptions.Timeout as err:
+        pass
+
+
+def SendButtonBool(bools):
+    try:
+        res = requests.get(f"http://192.168.1.8:8080/ChangeButtonBool/{bools}", timeout=0.1)
+        print(res)
+    except requests.exceptions.Timeout as err:
+        pass
+
+
+def SendButtonPress(buttons):
+    try:
+        res = requests.get(f"http://192.168.1.8:8080/ButtonPress/{buttons}", timeout=0.01)
+        print(res)
+    except requests.exceptions.Timeout as err:
+        pass
+
+
+def GetInfo(frameNum):
+    if frameNum == 59:
+        try:
+            res = requests.get("http://192.168.1.8:8080/info")
+            serverdata = res.content.decode()
+            converted = json.loads(serverdata)
+            return converted
+        except requests.ConnectionError as err:
+            return None
+
+
+def getDistance():
+    try:
+        res = requests.get("http://192.168.1.8:8080/GetDistance")
+        distData = res.content.decode()
+        converted = json.loads(distData)
+        return converted['ChangeDistance']
+    except requests.exceptions.Timeout as err:
+        return None
+
+
+def TakePhoto(temp):
+    img1 = Image.open("C:\GitHubProjects\img1.png")
+    img2 = Image.open("C:\GitHubProjects\img2.png")
+    img3 = Image.open("C:\GitHubProjects\img3.png")
+    img4 = Image.open("C:\GitHubProjects\img4.png")
+    pano = Image.new("RGB", (1000, 250), "white")
+    pano.paste(img1, (0, 0))
+    pano.paste(img2, (250, 0))
+    pano.paste(img3, (500, 0))
+    pano.paste(img4, (750, 0))
+    pano.show()
+
+
 
 def faceRight():
     global facing
@@ -214,16 +273,11 @@ def ChangeMovementMode(mode):
     elif mode == "idle":
         res = requests.get("http://192.168.1.8:8080/ChangeMoveMode/idle")
         Current_Movement_Mode = "idle"
+    elif mode == "takephoto":
+        res = requests.get("http://192.168.1.8:8080/ChangeMoveMode/takephoto")
+        Current_Movement_Mode = "idle"
     else:
         print("error, mode not accepted")
-
-
-def SendButtonPress(buttons):
-    try:
-        res = requests.get(f"http://192.168.1.8:8080/ButtonPress/{buttons}", timeout=0.01)
-        print(res)
-    except requests.exceptions.Timeout as err:
-        pass
 
 
 def UpdateCurrentButton(button):
@@ -231,22 +285,6 @@ def UpdateCurrentButton(button):
         SendButtonPress(button)
         return button
     return button
-
-
-def SendMovement(movement):
-    try:
-        res = requests.get(f"http://192.168.1.8:8080/ButtonPress/{movement}", timeout=.5)
-        print(res)
-    except requests.exceptions.Timeout as err:
-        pass
-
-
-def SendButtonBool(bools):
-    try:
-        res = requests.get(f"http://192.168.1.8:8080/ChangeButtonBool/{bools}", timeout=0.1)
-        print(res)
-    except requests.exceptions.Timeout as err:
-        pass
 
 
 def UpdateButtonBool(bool):
@@ -303,37 +341,11 @@ def GetObstacleCoords(dist, ang):
                     return x + 25, y + 25
 
 
-def RotateRobot(left, down, right, up):
-    pygame.transform.rotate(Robot_img, 90)
-
-
 def UpdateRobotRect(x, y):
     Robot_rect.x = x
     Robot_rect.y = y
     new_rect = rotated_image.get_rect(center=Robot_img.get_rect(topleft=Robot_rect.topleft).center)
     screen.blit(rotated_image, new_rect)
-
-
-def GetInfo(frameNum):
-    if frameNum == 59:
-        try:
-            res = requests.get("http://192.168.1.8:8080/info")
-            serverdata = res.content.decode()
-            converted = json.loads(serverdata)
-            return converted
-        except requests.ConnectionError as err:
-            return None
-
-
-def getDistance():
-    try:
-        res = requests.get("http://192.168.1.8:8080/GetDistance")
-        distData = res.content.decode()
-        print(distData)
-        converted = json.loads(distData)
-        return converted['ChangeDistance']
-    except requests.exceptions.Timeout as err:
-        return None
 
 
 # load images
@@ -345,6 +357,7 @@ IdleButton = Button("Idle", 200, 40, (20, 40), 5, ChangeMovementMode, "idle")
 RemoteButton = Button("Remote", 200, 40, (20, 90), 5, ChangeMovementMode, "remote")
 AutoButton = Button("Autonomous", 200, 40, (20, 140), 5, ChangeMovementMode, "auto")
 RoamButton = Button("Roam", 200, 40, (20, 190), 5, ChangeMovementMode, "roam")
+PhotoButton = Button("Take Pano", 150, 40, (900, 270), 5, ChangeMovementMode, "takephoto")
 
 # create map variable
 RobotMap = Map('./Map.png', (300, 20), 500, 500)
@@ -366,13 +379,15 @@ RobotTextRect = RobotText.get_rect()
 RobotTextRect.topleft = (20, 460)
 # robot image
 rotated_image = pygame.transform.rotate(Robot_img, 0)
-# main loop
+
+
 def updateScreen():
     screen.fill("#DCE5ED")
     IdleButton.draw()
     RemoteButton.draw()
     AutoButton.draw()
     RoamButton.draw()
+    PhotoButton.draw()
     RobotMap.draw()
     screen.blit(ConnText, ConnTextRect)
     screen.blit(ModeText, ModeTextRect)
@@ -380,6 +395,7 @@ def updateScreen():
     # placeholder camera box
     camera = pygame.Rect(900, 20, 200, 200)
     pygame.draw.rect(screen, '#000000', camera)
+
 
 def avoidObstacle():
     global currentMovement
@@ -454,6 +470,7 @@ def avoidObstacle():
         rotated_image = pygame.transform.rotate(Robot_img, angle)
         turned = True
 
+
 # main loop
 angle = 0
 running = True
@@ -485,6 +502,7 @@ while running:
     RemoteButton.draw()
     AutoButton.draw()
     RoamButton.draw()
+    PhotoButton.draw()
     RobotMap.draw()
     screen.blit(ConnText, ConnTextRect)
     screen.blit(ModeText, ModeTextRect)
@@ -683,6 +701,5 @@ while running:
         frame += 1
     clock.tick(60)
     pygame.display.flip()
-
 
 pygame.quit()
