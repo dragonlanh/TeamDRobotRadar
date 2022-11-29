@@ -24,8 +24,6 @@ facing = "up"
 turnControl = ""
 speed = .45
 
-
-
 # button class, probably going move to a different file
 class Button:
     def __init__(self, text, width, height, position, elevation, function, mode):
@@ -494,6 +492,110 @@ while running:
                 turned = False
             currentMovement = UpdateCurrentMovement("halt")
 
+        if Current_Movement_Mode == "roam":
+            randomLocation = (random.randint(300,800),random.randint(20,520))
+            if not randomLocation[0] >= RobotMap.Map_rect.topright[0] - 50:
+                if not randomLocation[0] <= RobotMap.Map_rect.topleft[0]:
+                    if not randomLocation[1] >= RobotMap.Map_rect.bottomleft[1] - 50:
+                        if not randomLocation[1] <= RobotMap.Map_rect.topleft[1]:
+                            pos = pygame.mouse.get_pos()
+                            print(pos)
+
+                            turnedRight = False
+                            turnedUp = False
+
+                            # right
+                            while (pos[0] - 50) > RobotX:
+                                if facing != "right" and turned == False:
+                                    faceRight()
+                                    # while turnControl != "turned":
+                                    #   turnControl = isTurned()
+                                    turned = True
+                                if isTurned() == "turned":
+                                    while (pos[0] - 50) > RobotX:
+                                        currentMovement = UpdateCurrentMovement("fwd")
+                                        RobotX += speed
+                                        UpdateRobotRect(RobotX, RobotY)
+                                        pygame.display.update()
+                                        if frame == 59:
+                                            frame = 0
+                                        else:
+                                            frame += 1
+                                        clock.tick(60)
+                                        pygame.display.flip()
+                                turnedRight = True
+
+                            turned = False
+
+                            # left
+                            if turnedRight == False:
+                                while (pos[0] - 50) < RobotX:
+                                    if facing != "left" and turned == False:
+                                        faceLeft()
+                                        #  while turnControl != "turned":
+                                        #     turnControl = isTurned()
+                                        turned = True
+                                    if isTurned() == "turned":
+                                        while (pos[0] - 50) < RobotX:
+                                            currentMovement = UpdateCurrentMovement("fwd")
+                                            RobotX -= speed
+                                            UpdateRobotRect(RobotX, RobotY)
+                                            pygame.display.update()
+                                            if frame == 59:
+                                                frame = 0
+                                            else:
+                                                frame += 1
+                                            clock.tick(60)
+                                            pygame.display.flip()
+
+                            turned = False
+
+                            # up
+                            while (pos[1] - 50) < RobotY:
+                                if facing != "up" and turned == False:
+                                    faceUp()
+                                    # while turnControl != "turned":
+                                    #   turnControl = isTurned()
+                                    turned = True
+                                if isTurned() == "turned":
+                                    while (pos[1] - 50) < RobotY:
+                                        currentMovement = UpdateCurrentMovement("fwd")
+                                        RobotY -= speed
+                                        UpdateRobotRect(RobotX, RobotY)
+                                        pygame.display.update()
+                                        if frame == 59:
+                                            frame = 0
+                                        else:
+                                            frame += 1
+                                        clock.tick(60)
+                                        pygame.display.flip()
+                                turnedUp = True
+
+                            turned = False
+
+                            # down
+                            if turnedUp == False:
+                                while (pos[1] - 50) > RobotY:
+                                    if facing != "down" and turned == False:
+                                        faceDown()
+                                        #  while turnControl != "turned":
+                                        #     turnControl = isTurned()
+                                        turned = True
+                                    if isTurned() == "turned":
+                                        while (pos[1] - 50) > RobotY:
+                                            currentMovement = UpdateCurrentMovement("fwd")
+                                            RobotY += speed
+                                            UpdateRobotRect(RobotX, RobotY)
+                                            pygame.display.update()
+                                            if frame == 59:
+                                                frame = 0
+                                            else:
+                                                frame += 1
+                                            clock.tick(60)
+                                            pygame.display.flip()
+
+                            turned = False
+                        currentMovement = UpdateCurrentMovement("halt")
     UpdateRobotRect(RobotX, RobotY)
     pygame.display.update()
     if frame == 59:
