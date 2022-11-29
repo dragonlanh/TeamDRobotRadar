@@ -1,5 +1,3 @@
-import json
-
 
 class Obstacle:
     def __init__(self, ID, locX, locY):
@@ -17,6 +15,7 @@ class Obstacle:
         return self.ID
 
     def GetXY_Adjusted(self):
+        # rounds coords to 10's
         finalX, finalY = self.LocationX - 300, self.LocationY - 20
         xmod = finalX % 10
         ymod = finalY % 10
