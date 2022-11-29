@@ -23,6 +23,9 @@ turned = False
 facing = "up"
 turnControl = ""
 speed = .45
+CurrentButtonBool = "false"
+
+
 
 # button class, probably going move to a different file
 class Button:
@@ -103,18 +106,26 @@ class Map:
         newObstacle = Classes.Obstacle(len(self.Obstacles) + 1, X, Y)
         self.Obstacles.append(newObstacle)
         try:
-            res = requests.post("http://192.168.1.7:8080/ObstacleJson", data=self.MakeObstacleJson(), timeout=1)
+            res = requests.get(
+                f"http://192.168.1.8:8080/ObjectJson/{newObstacle.GetID()}/{newObstacle.GetX()}/{newObstacle.GetY()}",
+                timeout=0.05)
             print(res)
         except requests.exceptions.Timeout as err:
             print("timeout error")
 
+    def RemoveObstacle(self):
+        pass
 
     def MakeObstacleJson(self):
-        compiledJson = {}
+        ConpiledJson = {}
+        index = 0
         for obstacle in self.Obstacles:
-            compiledJson[obstacle.ID] = (obstacle.GetXY_Adjusted())
-        print(compiledJson)
-        return compiledJson
+            index += 1
+            ConpiledJson.update({str(index): obstacle.ConvertToJson()})
+            coords = obstacle.GetXY_Adjusted()
+        JsonData = json.dumps(ConpiledJson)
+        print(JsonData)
+        # res = requests.get(f"https://teamdserver.herokuapp.com/ObstacleJson/{JsonData}")
 
     def GenerateObstacle(self):
         for i in range(3):
@@ -183,7 +194,7 @@ def faceDown():
 
 def isTurned():
     try:
-        res = requests.get("http://192.168.1.19:8080/GetTurn")
+        res = requests.get("http://192.168.1.8:8080/GetTurn")
         data = res.content.decode()
         converted = json.loads(data)
         print(converted['ChangeTurn'])
@@ -194,19 +205,19 @@ def isTurned():
 def ChangeMovementMode(mode):
     global Current_Movement_Mode
     if mode == "remote":
-        res = requests.get("http://192.168.1.19:8080/ChangeMoveMode/remote")
+        res = requests.get("http://192.168.1.8:8080/ChangeMoveMode/remote")
         Current_Movement_Mode = "remote"
         print(res)
     elif mode == "auto":
-        res = requests.get("http://192.168.1.19:8080/ChangeMoveMode/auto")
+        res = requests.get("http://192.168.1.8:8080/ChangeMoveMode/auto")
         Current_Movement_Mode = "auto"
         print(res)
     elif mode == "roam":
-        res = requests.get("http://192.168.1.19:8080/ChangeMoveMode/roam")
+        res = requests.get("http://192.168.1.8:8080/ChangeMoveMode/roam")
         Current_Movement_Mode = "roam"
         print(res)
     elif mode == "idle":
-        res = requests.get("http://192.168.1.19:8080/ChangeMoveMode/idle")
+        res = requests.get("http://192.168.1.8:8080/ChangeMoveMode/idle")
         Current_Movement_Mode = "idle"
     else:
         print("error, mode not accepted")
@@ -214,7 +225,7 @@ def ChangeMovementMode(mode):
 
 def SendButtonPress(buttons):
     try:
-        res = requests.get(f"http://192.168.1.19:8080/ButtonPress/{buttons}", timeout=0.01)
+        res = requests.get(f"http://192.168.1.8:8080/ButtonPress/{buttons}", timeout=0.1)
         print(res)
     except requests.exceptions.Timeout as err:
         pass
@@ -228,7 +239,7 @@ def UpdateCurrentButton(button):
 
 def SendMovement(movement):
     try:
-        res = requests.get(f"http://192.168.1.19:8080/ButtonPress/{movement}", timeout=.5)
+        res = requests.get(f"http://192.168.1.8:8080/ButtonPress/{movement}", timeout=.5)
         print(res)
     except requests.exceptions.Timeout as err:
         pass
@@ -238,6 +249,20 @@ def UpdateCurrentMovement(movement):
         SendMovement(movement)
         return movement
     return movement
+
+def SendButtonBool(bools):
+    try:
+        res = requests.get(f"http://192.168.1.8:8080/ChangeButtonBool/{bools}", timeout=0.1)
+        print(res)
+    except requests.exceptions.Timeout as err:
+        pass
+
+
+def UpdateButtonBool(bool):
+    if bool != CurrentButtonBool:
+        SendButtonBool(bool)
+        return bool
+    return bool
 
 def MoveRobot(down, ang):
     global RobotX, RobotY
@@ -250,6 +275,18 @@ def MoveRobot(down, ang):
                 if not predicted_coords[1] <= RobotMap.Map_rect.topleft[1]:
                     RobotX -= down * (velocity * math.sin(rad))
                     RobotY += down * (velocity * math.cos(rad))
+
+def AutoMoveRobot(down, ang):
+    global RobotX, RobotY
+    rad = math.radians(-1 * ang)
+    velocity = 2
+    predicted_coords = (RobotX - down * (velocity * math.sin(rad)), RobotY + down * (velocity * math.cos(rad)))
+    if not predicted_coords[0] >= RobotMap.Map_rect.topright[0] - 50:
+        if not predicted_coords[0] <= RobotMap.Map_rect.topleft[0]:
+            if not predicted_coords[1] >= RobotMap.Map_rect.bottomleft[1] - 50:
+                if not predicted_coords[1] <= RobotMap.Map_rect.topleft[1]:
+                    RobotX += down * (velocity * math.sin(rad))
+                    RobotY -= down * (velocity * math.cos(rad))
 
 
 def GetObstacleCoords(dist, ang):
@@ -280,7 +317,7 @@ def UpdateRobotRect(x, y):
 def GetInfo(frameNum):
     if frameNum == 59:
         try:
-            res = requests.get("http://192.168.1.19:8080/info")
+            res = requests.get("http://192.168.1.8:8080/info")
             serverdata = res.content.decode()
             converted = json.loads(serverdata)
             return converted
@@ -290,10 +327,11 @@ def GetInfo(frameNum):
 
 def getDistance():
     try:
-        res = requests.get("http://192.168.1.19:8080/GetDistance")
+        res = requests.get("http://192.168.1.8:8080/GetDistance")
         distData = res.content.decode()
         print(distData)
         converted = json.loads(distData)
+        #print (converted['ChangeDistance'])
         return converted['ChangeDistance']
     except requests.exceptions.Timeout as err:
         return None
@@ -329,6 +367,94 @@ RobotTextRect = RobotText.get_rect()
 RobotTextRect.topleft = (20, 460)
 # robot image
 rotated_image = pygame.transform.rotate(Robot_img, 0)
+
+def updateScreen():
+    screen.fill("#DCE5ED")
+    IdleButton.draw()
+    RemoteButton.draw()
+    AutoButton.draw()
+    RoamButton.draw()
+    RobotMap.draw()
+    screen.blit(ConnText, ConnTextRect)
+    screen.blit(ModeText, ModeTextRect)
+    screen.blit(RobotText, RobotTextRect)
+    # placeholder camera box
+    camera = pygame.Rect(900, 20, 200, 200)
+    pygame.draw.rect(screen, '#000000', camera)
+
+def avoidObstacle():
+    global currentMovement
+    global frame
+    global rotated_image
+    global turned
+    global angle
+    global facing
+    i = 0
+    newFacing = facing
+
+    if facing == "right":
+        faceDown()
+        angle = -180
+        rotated_image = pygame.transform.rotate(Robot_img, angle)
+        turned = True
+
+    if facing == "left":
+        faceUp()
+        angle = 0
+        rotated_image = pygame.transform.rotate(Robot_img, angle)
+        turned = True
+
+    if facing == "up":
+        faceRight()
+        angle = -90
+        rotated_image = pygame.transform.rotate(Robot_img, angle)
+        turned = True
+
+    if facing == "down":
+        faceLeft()
+        angle = 90
+        rotated_image = pygame.transform.rotate(Robot_img, angle)
+        turned = True
+
+    if isTurned() == "turned":
+        while i <= 50:
+            currentMovement = UpdateCurrentMovement("fwd")
+            AutoMoveRobot(.3, angle)
+            UpdateRobotRect(RobotX, RobotY)
+            pygame.display.update()
+            if frame == 59:
+                frame = 0
+            else:
+                frame += 1
+            clock.tick(60)
+            pygame.display.flip()
+            updateScreen()
+            i += 1
+
+    if newFacing == "right":
+        faceRight()
+        angle = -90
+        rotated_image = pygame.transform.rotate(Robot_img, angle)
+        turned = True
+
+    if newFacing == "left":
+        faceLeft()
+        angle = 90
+        rotated_image = pygame.transform.rotate(Robot_img, angle)
+        turned = True
+
+    if newFacing == "up":
+        faceUp()
+        angle = 0
+        rotated_image = pygame.transform.rotate(Robot_img, angle)
+        turned = True
+
+    if newFacing == "down":
+        faceDown()
+        angle = -180
+        rotated_image = pygame.transform.rotate(Robot_img, angle)
+        turned = True
+
 # main loop
 angle = 0
 running = True
@@ -375,170 +501,63 @@ while running:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_a] or keys[pygame.K_LEFT]:
                 angle += 1
+                CurrentButtonBool = UpdateButtonBool("true")
                 CurrentButton = UpdateCurrentButton("a")
                 rotated_image = pygame.transform.rotate(Robot_img, angle)
 
             if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+                CurrentButtonBool = UpdateButtonBool("true")
                 CurrentButton = UpdateCurrentButton("s")
                 MoveRobot(1, angle)
 
             if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                 angle -= 1
+                CurrentButtonBool = UpdateButtonBool("true")
                 CurrentButton = UpdateCurrentButton("d")
                 rotated_image = pygame.transform.rotate(Robot_img, angle)
 
             if keys[pygame.K_w] or keys[pygame.K_UP]:
+                CurrentButtonBool = UpdateButtonBool("true")
                 CurrentButton = UpdateCurrentButton("w")
-                MoveRobot(-1, angle)
+                if ObstacleFound == False:
+                    MoveRobot(-1, angle)
+                else:
+                    intDistance = getDistance()
+                    convIntDistance = int(intDistance)
+                    print(convIntDistance)
+                    if convIntDistance > 30:
+                        MoveRobot(-1, angle)
+            else:
+                CurrentButtonBool = UpdateButtonBool("false")
+            print(angle)
 
         if Current_Movement_Mode == "auto":
+
+            intDistance = int(getDistance())
+            currentMovement = UpdateCurrentMovement("halt")
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 print(pos)
 
-                turnedRight = False
-                turnedUp = False
+                if not pos[0] >= RobotMap.Map_rect.topright[0] - 50:
+                    if not pos[0] <= RobotMap.Map_rect.topleft[0]:
+                        if not pos[1] >= RobotMap.Map_rect.bottomleft[1] - 50:
+                            if not pos[1] <= RobotMap.Map_rect.topleft[1]:
+                                turnedRight = False
+                                turnedUp = False
 
-                # right
-                while (pos[0] - 50) > RobotX:
-                    if facing != "right" and turned == False:
-                        faceRight()
-                        # while turnControl != "turned":
-                        #   turnControl = isTurned()
-                        turned = True
-                    if isTurned() == "turned":
-                        while (pos[0] - 50) > RobotX:
-                            currentMovement = UpdateCurrentMovement("fwd")
-                            RobotX += speed
-                            UpdateRobotRect(RobotX, RobotY)
-                            pygame.display.update()
-                            if frame == 59:
-                                frame = 0
-                            else:
-                                frame += 1
-                            clock.tick(60)
-                            pygame.display.flip()
-                    turnedRight = True
-
-                turned = False
-
-                # left
-                if turnedRight == False:
-                    while (pos[0] - 50) < RobotX:
-                        if facing != "left" and turned == False:
-                            faceLeft()
-                            #  while turnControl != "turned":
-                            #     turnControl = isTurned()
-                            turned = True
-                        if isTurned() == "turned":
-                            while (pos[0] - 50) < RobotX:
-                                currentMovement = UpdateCurrentMovement("fwd")
-                                RobotX -= speed
-                                UpdateRobotRect(RobotX, RobotY)
-                                pygame.display.update()
-                                if frame == 59:
-                                    frame = 0
-                                else:
-                                    frame += 1
-                                clock.tick(60)
-                                pygame.display.flip()
-
-                turned = False
-
-                # up
-                while (pos[1] - 50) < RobotY:
-                    if facing != "up" and turned == False:
-                        faceUp()
-                        # while turnControl != "turned":
-                        #   turnControl = isTurned()
-                        turned = True
-                    if isTurned() == "turned":
-                        while (pos[1] - 50) < RobotY:
-                            currentMovement = UpdateCurrentMovement("fwd")
-                            RobotY -= speed
-                            UpdateRobotRect(RobotX, RobotY)
-                            pygame.display.update()
-                            if frame == 59:
-                                frame = 0
-                            else:
-                                frame += 1
-                            clock.tick(60)
-                            pygame.display.flip()
-                    turnedUp = True
-
-                turned = False
-
-                # down
-                if turnedUp == False:
-                    while (pos[1] - 50) > RobotY:
-                        if facing != "down" and turned == False:
-                            faceDown()
-                            #  while turnControl != "turned":
-                            #     turnControl = isTurned()
-                            turned = True
-                        if isTurned() == "turned":
-                            while (pos[1] - 50) > RobotY:
-                                currentMovement = UpdateCurrentMovement("fwd")
-                                RobotY += speed
-                                UpdateRobotRect(RobotX, RobotY)
-                                pygame.display.update()
-                                if frame == 59:
-                                    frame = 0
-                                else:
-                                    frame += 1
-                                clock.tick(60)
-                                pygame.display.flip()
-
-                turned = False
-            currentMovement = UpdateCurrentMovement("halt")
-
-        if Current_Movement_Mode == "roam":
-            randomLocation = (random.randint(300,800),random.randint(20,520))
-            if not randomLocation[0] >= RobotMap.Map_rect.topright[0] - 50:
-                if not randomLocation[0] <= RobotMap.Map_rect.topleft[0]:
-                    if not randomLocation[1] >= RobotMap.Map_rect.bottomleft[1] - 50:
-                        if not randomLocation[1] <= RobotMap.Map_rect.topleft[1]:
-                            pos = pygame.mouse.get_pos()
-                            print(pos)
-
-                            turnedRight = False
-                            turnedUp = False
-
-                            # right
-                            while (pos[0] - 50) > RobotX:
-                                if facing != "right" and turned == False:
-                                    faceRight()
-                                    # while turnControl != "turned":
-                                    #   turnControl = isTurned()
-                                    turned = True
-                                if isTurned() == "turned":
-                                    while (pos[0] - 50) > RobotX:
-                                        currentMovement = UpdateCurrentMovement("fwd")
-                                        RobotX += speed
-                                        UpdateRobotRect(RobotX, RobotY)
-                                        pygame.display.update()
-                                        if frame == 59:
-                                            frame = 0
-                                        else:
-                                            frame += 1
-                                        clock.tick(60)
-                                        pygame.display.flip()
-                                turnedRight = True
-
-                            turned = False
-
-                            # left
-                            if turnedRight == False:
-                                while (pos[0] - 50) < RobotX:
-                                    if facing != "left" and turned == False:
-                                        faceLeft()
-                                        #  while turnControl != "turned":
-                                        #     turnControl = isTurned()
+                                # right
+                                while pos[0] > RobotX:
+                                    if facing != "right" and turned == False:
+                                        faceRight()
+                                        angle = -90
+                                        rotated_image = pygame.transform.rotate(Robot_img, angle)
                                         turned = True
                                     if isTurned() == "turned":
-                                        while (pos[0] - 50) < RobotX:
+                                        while pos[0] > RobotX:
                                             currentMovement = UpdateCurrentMovement("fwd")
-                                            RobotX -= speed
+                                            AutoMoveRobot(.3, angle)
                                             UpdateRobotRect(RobotX, RobotY)
                                             pygame.display.update()
                                             if frame == 59:
@@ -547,44 +566,62 @@ while running:
                                                 frame += 1
                                             clock.tick(60)
                                             pygame.display.flip()
+                                            updateScreen()
+                                            intDistance = int(getDistance())
+                                            if data["ObstacleFound"] == True:
+                                                intDistance = getDistance()
+                                                convIntDistance = int(intDistance)
+                                                print(convIntDistance)
+                                                if convIntDistance <= 30:
+                                                    avoidObstacle()
+                                    turnedRight = True
 
-                            turned = False
+                                turned = False
 
-                            # up
-                            while (pos[1] - 50) < RobotY:
-                                if facing != "up" and turned == False:
-                                    faceUp()
-                                    # while turnControl != "turned":
-                                    #   turnControl = isTurned()
-                                    turned = True
-                                if isTurned() == "turned":
-                                    while (pos[1] - 50) < RobotY:
-                                        currentMovement = UpdateCurrentMovement("fwd")
-                                        RobotY -= speed
-                                        UpdateRobotRect(RobotX, RobotY)
-                                        pygame.display.update()
-                                        if frame == 59:
-                                            frame = 0
-                                        else:
-                                            frame += 1
-                                        clock.tick(60)
-                                        pygame.display.flip()
-                                turnedUp = True
+                                # left
+                                if turnedRight == False:
+                                    while pos[0] < RobotX:
+                                        if facing != "left" and turned == False:
+                                            faceLeft()
+                                            angle = 90
+                                            rotated_image = pygame.transform.rotate(Robot_img, angle)
+                                            turned = True
+                                        if isTurned() == "turned":
+                                            while pos[0] < RobotX:
+                                                currentMovement = UpdateCurrentMovement("fwd")
+                                                AutoMoveRobot(.3, angle)
+                                                UpdateRobotRect(RobotX, RobotY)
+                                                pygame.display.update()
+                                                if frame == 59:
+                                                    frame = 0
+                                                else:
+                                                    frame += 1
+                                                clock.tick(60)
+                                                pygame.display.flip()
+                                                updateScreen()
+                                                intDistance = int(getDistance())
+                                                if data["ObstacleFound"] == True:
+                                                    intDistance = getDistance()
+                                                    convIntDistance = int(intDistance)
+                                                    print(convIntDistance)
+                                                    if convIntDistance <= 30:
+                                                        avoidObstacle()
 
-                            turned = False
+                                turned = False
 
-                            # down
-                            if turnedUp == False:
-                                while (pos[1] - 50) > RobotY:
-                                    if facing != "down" and turned == False:
-                                        faceDown()
-                                        #  while turnControl != "turned":
-                                        #     turnControl = isTurned()
+                                # up
+                                while pos[1] < RobotY:
+                                    if facing != "up" and turned == False:
+                                        faceUp()
+                                        # while turnControl != "turned":
+                                        #   turnControl = isTurned()
+                                        angle = 0
+                                        rotated_image = pygame.transform.rotate(Robot_img, angle)
                                         turned = True
                                     if isTurned() == "turned":
-                                        while (pos[1] - 50) > RobotY:
+                                        while pos[1] < RobotY:
                                             currentMovement = UpdateCurrentMovement("fwd")
-                                            RobotY += speed
+                                            AutoMoveRobot(.3, angle)
                                             UpdateRobotRect(RobotX, RobotY)
                                             pygame.display.update()
                                             if frame == 59:
@@ -593,9 +630,52 @@ while running:
                                                 frame += 1
                                             clock.tick(60)
                                             pygame.display.flip()
+                                            updateScreen()
+                                            intDistance = int(getDistance())
+                                            if data["ObstacleFound"] == True:
+                                                intDistance = getDistance()
+                                                convIntDistance = int(intDistance)
+                                                print(convIntDistance)
+                                                if convIntDistance <= 30:
+                                                    avoidObstacle()
+                                    turnedUp = True
 
-                            turned = False
-                        currentMovement = UpdateCurrentMovement("halt")
+                                turned = False
+
+                                # down
+                                if turnedUp == False:
+                                    while pos[1] > RobotY:
+                                        if facing != "down" and turned == False:
+                                            faceDown()
+                                            #  while turnControl != "turned":
+                                            #     turnControl = isTurned()
+                                            angle = 180
+                                            rotated_image = pygame.transform.rotate(Robot_img, angle)
+                                            turned = True
+                                        if isTurned() == "turned":
+                                            while pos[1] > RobotY:
+                                                currentMovement = UpdateCurrentMovement("fwd")
+                                                AutoMoveRobot(.3, angle)
+                                                UpdateRobotRect(RobotX, RobotY)
+                                                pygame.display.update()
+                                                if frame == 59:
+                                                    frame = 0
+                                                else:
+                                                    frame += 1
+                                                clock.tick(60)
+                                                pygame.display.flip()
+                                                updateScreen()
+                                                intDistance = int(getDistance())
+                                                if data["ObstacleFound"] == True:
+                                                    intDistance = getDistance()
+                                                    convIntDistance = int(intDistance)
+                                                    print(convIntDistance)
+                                                    if convIntDistance <= 30:
+                                                        avoidObstacle()
+
+                                turned = False
+                            currentMovement = UpdateCurrentMovement("halt")
+
     UpdateRobotRect(RobotX, RobotY)
     pygame.display.update()
     if frame == 59:
